@@ -22,4 +22,11 @@
     <ProjectReference Include="..\..\src\RealTestMcp\RealTestMcp.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="Exists('..\..\native\windows-x64\vec0.dll')">
+    <Content Include="..\..\native\windows-x64\vec0.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>vec0.dll</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>
