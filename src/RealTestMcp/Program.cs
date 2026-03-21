@@ -1,4 +1,8 @@
 // src/RealTestMcp/Program.cs
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ModelContextProtocol.Server;
+using RealTestMcp.Tools;
 using System.CommandLine;
 using RealTestMcp.Core.Configuration;
 
@@ -42,8 +46,14 @@ rootCommand.Subcommands.Add(ingestCommand);
 rootCommand.Subcommands.Add(statusCommand);
 rootCommand.SetAction(async (_, cancellationToken) =>
 {
-    Console.Error.WriteLine("MCP server mode: not yet implemented");
-    await Task.CompletedTask;
+    var builder = Host.CreateApplicationBuilder(args);
+    builder.Services
+        .AddSingleton(settings)
+        .AddMcpServer()
+        .WithStdioServerTransport()
+        .WithToolsFromAssembly(typeof(SearchDocsTool).Assembly);
+
+    await builder.Build().RunAsync();
 });
 
 return rootCommand.Parse(args).Invoke();
