@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealTestMcp", "src\RealTestMcp\RealTestMcp.csproj", "{F8B8C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealTestMcp.Tests", "tests\RealTestMcp.Tests\RealTestMcp.Tests.csproj", "{A7B7C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8B8C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8B8C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8B8C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8B8C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7B7C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7B7C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7B7C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7B7C5F3-1C7E-4E9B-8B8A-7D5C5C5C5C5D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
