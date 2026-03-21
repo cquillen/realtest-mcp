@@ -18,6 +18,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Verify sqlite-vec native extension present
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "native/windows-x64/vec0.dll")) {
+            Write-Error "native/windows-x64/vec0.dll is missing. Download from sqlite-vec GitHub releases."
+            exit 1
+          }
+
       - name: Restore
         run: dotnet restore RealTestMcp.sln
 
