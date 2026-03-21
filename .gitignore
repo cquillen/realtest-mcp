@@ -3,3 +3,7 @@
 
 # Git worktrees
 .worktrees/
+
+# .NET build output
+bin/
+obj/
