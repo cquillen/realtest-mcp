@@ -6,15 +6,14 @@ using RealTestMcp.Tools;
 using System.CommandLine;
 using RealTestMcp.Core.Configuration;
 using RealTestMcp.Core;
+using RealTestMcp.Ingestion.Commands;
 
 var settings = AppSettings.Load();
 
 // ── ingest docs ──────────────────────────────────────────────────
 var ingestDocsCommand = new Command("docs", "Ingest CHM documentation into the database");
-ingestDocsCommand.SetAction(_ =>
-{
-    Console.Error.WriteLine("ingest docs: not yet implemented");
-});
+ingestDocsCommand.SetAction(async (ParseResult _) =>
+    await IngestDocsCommand.RunAsync(settings));
 
 // ── ingest scripts ───────────────────────────────────────────────
 var ingestScriptsCommand = new Command("scripts", "Ingest .rts scripts into the database");
