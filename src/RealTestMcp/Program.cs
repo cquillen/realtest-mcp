@@ -74,11 +74,16 @@ rootCommand.SetAction(async (_, cancellationToken) =>
     var builder = Host.CreateApplicationBuilder(args);
     builder.Services
         .AddSingleton(settings)
+        .AddSingleton(new VectorStoreService(settings.Database.Path))
+        .AddSingleton<EmbeddingService>()
         .AddMcpServer()
         .WithStdioServerTransport()
         .WithToolsFromAssembly(typeof(SearchDocsTool).Assembly);
 
-    await builder.Build().RunAsync();
+    var host = builder.Build();
+    var store = host.Services.GetRequiredService<VectorStoreService>();
+    await store.EnsureSchemaAsync();
+    await host.RunAsync();
 });
 
 return rootCommand.Parse(args).Invoke();

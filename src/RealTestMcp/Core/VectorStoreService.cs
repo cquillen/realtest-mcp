@@ -9,6 +9,7 @@ public class VectorStoreService : IAsyncDisposable
 {
     private readonly string _dbPath;
     private SqliteConnection? _connection;
+    private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
     public VectorStoreService(string dbPath)
     {
@@ -24,20 +25,28 @@ public class VectorStoreService : IAsyncDisposable
 
     private async Task<SqliteConnection> GetConnectionAsync()
     {
-        if (_connection is null)
+        if (_connection is not null) return _connection;
+        await _initLock.WaitAsync();
+        try
         {
-            var dir = Path.GetDirectoryName(_dbPath);
-            if (!string.IsNullOrEmpty(dir))
-                Directory.CreateDirectory(dir);
+            if (_connection is null)
+            {
+                var dir = Path.GetDirectoryName(_dbPath);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
 
-            _connection = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
-            await _connection.OpenAsync();
+                _connection = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
+                await _connection.OpenAsync();
 
-            // Load sqlite-vec extension
-            _connection.EnableExtensions(true);
-            _connection.LoadExtension(Path.Combine(AppContext.BaseDirectory, "vec0"));
+                _connection.EnableExtensions(true);
+                _connection.LoadExtension(Path.Combine(AppContext.BaseDirectory, "vec0"));
+            }
         }
-        return _connection;
+        finally
+        {
+            _initLock.Release();
+        }
+        return _connection!;
     }
 
     public async Task EnsureSchemaAsync()
@@ -255,6 +264,7 @@ public class VectorStoreService : IAsyncDisposable
             await _connection.DisposeAsync();
             _connection = null;
         }
+        _initLock.Dispose();
         SqliteConnection.ClearAllPools();
     }
 }
