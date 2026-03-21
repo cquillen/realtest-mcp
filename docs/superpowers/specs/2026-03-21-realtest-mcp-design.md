@@ -34,14 +34,14 @@ RealTest is a niche backtesting platform using a proprietary scripting language 
 | MCP SDK | `ModelContextProtocol` NuGet package |
 | CLI routing | `System.CommandLine` |
 | Vector store | SQLite + `sqlite-vec` (direct, no abstraction layer) |
-| Embeddings | `all-MiniLM-L6-v2` via `Microsoft.ML.OnnxRuntime` (local, cached) |
+| Embeddings | `all-MiniLM-L6-v2` via `SmartComponents.LocalEmbeddings` (bundled in NuGet, no download) |
 | HTML parsing | `HtmlAgilityPack` |
 | Testing | xUnit |
 | CI | GitHub Actions |
 
 **Key decisions:**
 - **No Semantic Kernel**: adds abstraction over a backend that will never be swapped. Raw `sqlite-vec` with a thin service class (~150-200 lines) is simpler and more maintainable.
-- **Local ONNX embeddings**: no paid services, no external dependencies at runtime. Model downloaded on first run, cached in user data directory.
+- **`SmartComponents.LocalEmbeddings` over raw ONNX Runtime**: bundles `all-MiniLM-L6-v2` directly in the NuGet package — no model download, no file management, no checksums. Add one package reference and call `EmbedAsync()`. Microsoft-maintained.
 - **Single binary**: server and ingestion CLI in one executable, routed by `System.CommandLine`. Simpler for users and for development.
 
 ---
@@ -178,9 +178,7 @@ All string path values read from `appsettings.json` must be passed through `Envi
       "C:\\Users\\craig\\Documents\\MyScripts"
     ]
   },
-  "Embeddings": {
-    "ModelCachePath": "%LOCALAPPDATA%\\RealTestMcp\\models"
-  }
+}
 }
 ```
 
@@ -260,9 +258,7 @@ The CHM example index page is parsed first to extract script name → category/d
 
 ### Embedding Model
 
-`all-MiniLM-L6-v2` in ONNX format. **Downloaded via `HttpClient` on first run** from HuggingFace (`https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2`). Downloaded files are SHA256-validated against known checksums before use. Cached in `ModelCachePath` — subsequent runs load from cache with no network access. The model is not bundled in the repo (too large) and is not a NuGet dependency (avoids pinning model version to package releases).
-
-If the download fails, ingestion exits immediately with a clear error message and the download URL.
+`all-MiniLM-L6-v2` via `SmartComponents.LocalEmbeddings` NuGet package. The model is bundled inside the package — no download, no file management, no cache directory needed. `EmbeddingService` is a thin wrapper over `LocalEmbedder` from that package. The `ModelCachePath` configuration key is removed as it is no longer needed.
 
 ---
 
@@ -330,8 +326,7 @@ Chunk counts:
   ─────────────────
   total          382
 
-Model cache:    C:\Users\craig\AppData\Local\RealTestMcp\models
-Model loaded:   yes (all-MiniLM-L6-v2)
+Model:          all-MiniLM-L6-v2 (SmartComponents.LocalEmbeddings, bundled)
 
 Last ingest:
   docs        2026-03-21 14:32 UTC
@@ -383,8 +378,7 @@ Workflow for translating a trading concept into RealScript:
 ## Error Handling
 
 - **Ingestion — file errors**: log the problematic file with a clear message and continue. One bad file never aborts the full run.
-- **Embedding failures**: fatal. Clear error message explaining how to resolve (re-download model, check path).
-- **Model download failure**: fatal with the download URL and instructions. Ingestion does not proceed without a validated model.
+- **Embedding failures**: fatal. The `SmartComponents.LocalEmbeddings` model is bundled in the NuGet package and requires no download, so failures here indicate a corrupted install. Clear error message directing the user to reinstall.
 - **MCP tool errors**: return a structured error string to Claude (e.g., "DB not found — run `realtest-mcp ingest docs` first"). Never throw unhandled exceptions into the stdio stream.
 - **Missing DB at server startup**: server starts successfully. Tools return a helpful "DB not initialized" message rather than crashing.
 - **Missing configuration**: sensible defaults everywhere. Only fail if a path is explicitly configured but doesn't exist.
@@ -414,7 +408,7 @@ Sample files:
 - A handful of `.rts` example scripts across at least two categories
 
 ### CI Pipeline
-GitHub Actions: build + all tests on every push to `main`. The ONNX model is **mocked in CI** — integration tests inject a fake `IEmbeddingService` that returns deterministic fixed-length vectors, avoiding the need to download the 80MB model in CI.
+GitHub Actions: build + all tests on every push to `main`. Because `SmartComponents.LocalEmbeddings` bundles the model in the NuGet package, **no model download is needed in CI** — integration tests use the real `EmbeddingService` with no mocking required.
 
 ---
 
@@ -426,7 +420,7 @@ Each slice leaves the system in a working, buildable state:
 |---|---|---|
 | 1 | Skeleton | Solution + project scaffolded. Single binary, CLI routing, `status` prints "DB not initialized". MCP server responds to `initialize` handshake. Claude Code can connect. CI pipeline green. |
 | 2 | Storage | SQLite DB created, `sqlite-vec` extension loaded, schema applied. `status` shows real DB stats (all zeros). |
-| 3 | Embeddings | ONNX model download + validation + cache. `EmbeddingService` works. Can embed a string from the CLI. |
+| 3 | Embeddings | Add `SmartComponents.LocalEmbeddings` NuGet package. `EmbeddingService` wrapper works. Can embed a string from the CLI. |
 | 4 | Docs ingestion | CHM parser + chunker + `ingest docs` command. `status` shows doc chunk counts. |
 | 5 | Docs search | `search_docs` and `get_function_reference` tools working. **First useful version.** |
 | 6 | Scripts ingestion | RTS parser + `ingest scripts` with multi-path support. |
@@ -438,8 +432,7 @@ Each slice leaves the system in a working, buildable state:
 ## Open Items
 
 1. **CHM file inspection** — actual CHM structure determines whether sub-page `function_entry` chunking is needed and how to detect function boundaries. Defer to Slice 4.
-2. **HuggingFace model URL and checksums** — confirm exact ONNX model file URL and SHA256 checksums for download validation. Resolve at Slice 3.
-3. **Marsten's explicit go-ahead on public repo** — implicit from the project brief; worth confirming before publishing.
+2. **Marsten's explicit go-ahead on public repo** — implicit from the project brief; worth confirming before publishing.
 4. **Forum backup file** — needed for v2. Not required for v1.
 
 ---
