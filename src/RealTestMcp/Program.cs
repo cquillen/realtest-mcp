@@ -83,7 +83,7 @@ rootCommand.SetAction(async (_, cancellationToken) =>
     var host = builder.Build();
     var store = host.Services.GetRequiredService<VectorStoreService>();
     await store.EnsureSchemaAsync();
-    await host.RunAsync();
+    await host.RunAsync(cancellationToken);
 });
 
 return rootCommand.Parse(args).Invoke();

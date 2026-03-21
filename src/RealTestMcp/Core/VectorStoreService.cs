@@ -8,7 +8,7 @@ namespace RealTestMcp.Core;
 public class VectorStoreService : IAsyncDisposable
 {
     private readonly string _dbPath;
-    private SqliteConnection? _connection;
+    private volatile SqliteConnection? _connection;
     private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
     public VectorStoreService(string dbPath)
