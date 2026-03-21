@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "env": {},
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "Notification": [],
+    "Stop": []
+  }
+}

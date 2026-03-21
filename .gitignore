@@ -1,0 +1,2 @@
+# Claude Code local settings (personal overrides, may contain secrets)
+.claude/settings.local.json
