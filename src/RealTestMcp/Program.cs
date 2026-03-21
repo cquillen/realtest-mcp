@@ -17,10 +17,8 @@ ingestDocsCommand.SetAction(async (ParseResult _) =>
 
 // ── ingest scripts ───────────────────────────────────────────────
 var ingestScriptsCommand = new Command("scripts", "Ingest .rts scripts into the database");
-ingestScriptsCommand.SetAction(_ =>
-{
-    Console.Error.WriteLine("ingest scripts: not yet implemented");
-});
+ingestScriptsCommand.SetAction(async (ParseResult _) =>
+    await IngestScriptsCommand.RunAsync(settings));
 
 // ── ingest (parent) ──────────────────────────────────────────────
 var ingestCommand = new Command("ingest", "Ingest data sources into the database");
