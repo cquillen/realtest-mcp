@@ -122,4 +122,51 @@ public class DocChunkerTests
 
         Assert.Equal(chunks1[0].Id, chunks2[0].Id);
     }
+
+    // ── "X or Y" alias splitting ──────────────────────────────────────
+
+    [Fact]
+    public void ReferencePage_WithOrAlias_ProducesOneChunkPerAlias()
+    {
+        var labels = new Dictionary<string, string> { ["Category"] = "Multi-Bar Functions" };
+        var bodyText = "EMA or XAvg\nCategory: Multi-Bar Functions\nSyntax: EMA(expr, count)";
+        var page = new HtmlPage("/fake/ema.html", "EMA or XAvg",
+            "Realtest Script Language > Syntax Element Details",
+            PageType.Reference, labels, bodyText, "");
+
+        var chunks = DocChunker.Chunk(page);
+
+        Assert.Equal(2, chunks.Count);
+        Assert.All(chunks, c => Assert.Equal("reference", c.ChunkType));
+        Assert.Contains(chunks, c => c.Description == "EMA");
+        Assert.Contains(chunks, c => c.Description == "XAvg");
+    }
+
+    [Fact]
+    public void ReferencePage_WithOrAlias_AllChunksHaveSameContent()
+    {
+        var labels = new Dictionary<string, string>();
+        var bodyText = "EMA or XAvg\nSyntax: EMA(expr, count)";
+        var page = new HtmlPage("/fake/ema.html", "EMA or XAvg", "",
+            PageType.Reference, labels, bodyText, "");
+
+        var chunks = DocChunker.Chunk(page);
+
+        Assert.Equal(chunks[0].Content, chunks[1].Content);
+    }
+
+    [Fact]
+    public void ReferencePage_WithOrAlias_ChunkIdsAreDeterministicAndDistinct()
+    {
+        var labels = new Dictionary<string, string>();
+        var page = new HtmlPage("/fake/ema.html", "EMA or XAvg", "",
+            PageType.Reference, labels, "EMA or XAvg", "");
+
+        var chunks1 = DocChunker.Chunk(page);
+        var chunks2 = DocChunker.Chunk(page);
+
+        Assert.Equal(chunks1[0].Id, chunks2[0].Id);    // deterministic
+        Assert.Equal(chunks1[1].Id, chunks2[1].Id);    // deterministic
+        Assert.NotEqual(chunks1[0].Id, chunks1[1].Id); // distinct per alias
+    }
 }
