@@ -1,13 +1,27 @@
 {
+  "env": {},
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "WebFetch(*)",
+      "WebSearch(*)"
+    ],
     "deny": []
   },
-  "env": {},
   "hooks": {
     "PreToolUse": [],
     "PostToolUse": [],
     "Notification": [],
     "Stop": []
+  },
+  "enabledPlugins": {
+    "mcp-server-dev@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   }
 }

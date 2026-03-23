@@ -19,7 +19,7 @@ dotnet build
 
 **2. Extract RealTest docs** (one-time, after each RealTest upgrade)
 ```bash
-hh.exe -decompile C:\RealTest\Help C:\RealTest\RealTest.chm
+hh.exe -decompile C:\RealTest\Help "C:\RealTest\RealTest User Guide.chm"
 ```
 
 **3. Ingest docs and scripts**

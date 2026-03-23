@@ -37,7 +37,7 @@ public class AppSettings
             set => _docsPath = Environment.ExpandEnvironmentVariables(value);
         }
 
-        private string[] _scriptPaths = [@"C:\RealTest\Scripts\Examples"];
+        private string[] _scriptPaths = [];
         public string[] ScriptPaths
         {
             get => _scriptPaths;
