@@ -10,27 +10,30 @@ public static class DocChunker
     {
         return page.PageType switch
         {
-            PageType.Reference => [ReferenceChunk(page)],
+            PageType.Reference => ReferenceChunks(page),
             PageType.Prose     => [ProseChunk(page)],
             _                  => []   // NavIndex: skip
         };
     }
 
-    private static Chunk ReferenceChunk(HtmlPage page)
+    private static List<Chunk> ReferenceChunks(HtmlPage page)
     {
         page.Labels.TryGetValue("Category", out var category);
-        var id = VectorStoreService.ComputeChunkId(page.FilePath, 0);
-        return new Chunk(
-            Id: id,
+
+        // "EMA or XAvg" → ["EMA", "XAvg"]; "ATR" → ["ATR"]
+        var aliases = page.Title.Split(" or ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        return aliases.Select((alias, i) => new Chunk(
+            Id: VectorStoreService.ComputeChunkId(page.FilePath, i),
             SourceType: "docs",
             SourcePath: page.FilePath,
             ChunkType: "reference",
             Section: NullIfEmpty(page.Section),
             Category: NullIfEmpty(category),
-            Description: page.Title,
+            Description: alias,
             Content: page.BodyText,
-            ChunkIndex: 0,
-            CreatedAt: DateTime.UtcNow);
+            ChunkIndex: i,
+            CreatedAt: DateTime.UtcNow)).ToList();
     }
 
     private static Chunk ProseChunk(HtmlPage page)
