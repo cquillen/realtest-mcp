@@ -194,6 +194,30 @@ public class VectorStoreService : IAsyncDisposable
         return await ReadSearchResultsAsync(cmd);
     }
 
+    public async Task<List<SearchResult>> SearchByDescriptionAsync(
+        string name,
+        string? chunkType = "reference",
+        int topK = 1)
+    {
+        var conn = await GetConnectionAsync();
+        var whereChunkType = chunkType is not null ? "AND chunk_type = @chunk_type" : "";
+        var sql = $"""
+            SELECT id, source_type, source_path, chunk_type, section, category, description, content, 0.0 AS distance
+            FROM chunks
+            WHERE LOWER(description) = LOWER(@name)
+              {whereChunkType}
+            LIMIT @topk
+            """;
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.AddWithValue("@name", name);
+        cmd.Parameters.AddWithValue("@topk", topK);
+        if (chunkType is not null) cmd.Parameters.AddWithValue("@chunk_type", chunkType);
+
+        return await ReadSearchResultsAsync(cmd);
+    }
+
     public async Task<Dictionary<string, int>> GetChunkCountsAsync()
     {
         var conn = await GetConnectionAsync();
