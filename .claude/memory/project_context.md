@@ -15,10 +15,14 @@ RealTest MCP Server is a single-binary C# / .NET 10 console app that provides se
 - No pre-built database distribution — users run ingestion locally
 - Forum content deferred to v2; v1 = CHM docs + .rts example scripts only
 
-**Current status (2026-03-21):** Design spec and implementation plan complete and reviewed. No code written yet. Ready to implement.
+**Current status (2026-03-23):** Doc ingestion & search improvements fully implemented, tested, and verified via live MCP tool tests. All success criteria confirmed.
 
 **Key files:**
-- Spec: `docs/superpowers/specs/2026-03-21-realtest-mcp-design.md`
-- Plan: `docs/superpowers/plans/2026-03-21-realtest-mcp.md`
+- Original design spec: `docs/superpowers/specs/2026-03-21-realtest-mcp-design.md`
+- Doc ingestion spec: `docs/superpowers/specs/2026-03-22-doc-ingestion-design.md`
 
-**How to apply:** When the user asks to implement or start building, reference the plan. The plan follows vertical slices (20 tasks) with TDD throughout.
+**Completed work:**
+- `ChmParser` — classifies pages (Reference/Prose/NavIndex) using CSS classes, extracts Labels + Section breadcrumbs
+- `DocChunker` — switches on PageType, emits `chunk_type="reference"` with alias splitting for "X or Y" titles
+- `VectorStoreService.SearchByDescriptionAsync` — exact case-insensitive description match
+- `GetFunctionReferenceTool` — 4-step cascade: exact description → keyword reference → keyword all → vector
