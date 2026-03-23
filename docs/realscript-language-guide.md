@@ -369,6 +369,7 @@ All support one-pass calculation in `Data:` with non-variable count unless noted
 
 | Function | Aliases | Syntax | Description |
 |----------|---------|--------|-------------|
+| `Cross` | — | `Cross(value1, value2)` | True on the bar where value1 crosses above value2 (i.e. `value1[1] < value2[1] and value1 > value2`). To test "A crossed below B", use `Cross(B, A)`. |
 | `IF` | `IIF` | `IF(cond, if_true, if_false)` | Conditional — returns if_true or if_false |
 | `Select` | — | `Select(cond, val, cond, val, ...)` | Multi-branch conditional; returns NaN if no branch matches (use odd arg count for default) |
 | `Abs` | — | `Abs(value)` | Absolute value |
