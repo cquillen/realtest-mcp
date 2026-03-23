@@ -137,8 +137,12 @@ public class VectorStoreService : IAsyncDisposable
         var conn = await GetConnectionAsync();
         var vectorJson = "[" + string.Join(",", queryEmbedding) + "]";
 
-        // Over-fetch by 3x to ensure enough results survive the metadata filters.
-        var fetchK = topK * 3;
+        // Over-fetch to ensure enough results survive the metadata filters.
+        // Use a large multiplier when filtering by source/category/section, because those
+        // filters can exclude the vast majority of KNN candidates (e.g. 102 example chunks
+        // out of 869 total means only ~12% survive a source_type filter).
+        var hasFilters = sourceType is not null || categoryFilter is not null || sectionFilter is not null;
+        var fetchK = hasFilters ? topK * 20 : topK * 3;
 
         var whereClause = sourceType is not null ? "WHERE c.source_type = @source_type" : "WHERE 1=1";
         if (categoryFilter is not null) whereClause += " AND LOWER(c.category) = LOWER(@category)";
