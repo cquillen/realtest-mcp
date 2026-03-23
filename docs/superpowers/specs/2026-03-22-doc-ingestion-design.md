@@ -40,7 +40,7 @@ All pages in `C:\RealTest\Help\` share a common layout:
 
 ### 1. `ChmParser` — Page Classification & Structured Extraction
 
-`ParseFile` is extended to return an enriched `HtmlPage` record:
+`ParseFile` returns a new `HtmlPage` record — the existing definition is replaced entirely:
 
 ```csharp
 public record HtmlPage(
@@ -57,13 +57,14 @@ public enum PageType { Reference, Prose, NavIndex }
 
 **Classification rules (applied in order):**
 
-1. **NavIndex** — `ps6` is absent AND `ps4` contains only whitespace/links (no prose text). These are skipped during ingestion.
-2. **Reference** — at least one `ps6` element is present. Extract `ps4` inner text as label keys; collect all consecutive `ps6` inner texts under that label, joining with `\n`.
+0. **Skip (malformed)** — page has no `ps2` title element and no `ps4` elements. Produces no chunk.
+1. **NavIndex** — `ps6` is absent AND the total character count of all `ps4` inner text *after stripping `<a>` tag inner text and whitespace* is less than 20 characters. These are link-list navigation pages with no prose. Skip during ingestion.
+2. **Reference** — at least one `ps6` element is present. Extract `ps4` inner text as label keys; collect all consecutive `ps6` inner texts under that label. Multiple `ps6` elements under the same label are joined with `"\n  "` (newline + two spaces) so continuation lines are visually subordinate and cannot be confused with the opening title line.
 3. **Prose** — everything else. Extract `ps4` and `ps8` elements as paragraphs.
 
-**Section extraction:** Collect inner text of all `ps1`-class anchor (`hs1`) links, joined with ` > ` (e.g., `"Realtest Script Language > Syntax Element Details"`).
+**Section extraction:** Select all `<a>` elements with CSS class `hs1` (the breadcrumb links — e.g., `<a href="..." class="hs1">Realtest Script Language</a>`). Collect their inner text and join with ` > ` (e.g., `"Realtest Script Language > Syntax Element Details"`). The `ps1` class marks the containing paragraph; the `hs1` class marks the individual anchor links within it.
 
-**BodyText for reference pages** — reconstructed as labeled content:
+**BodyText for reference pages** — reconstructed as labeled content. For labels with multiple values (e.g., multiple parameters), continuation lines are indented with two spaces:
 ```
 ATR
 Category: Indicator Functions
@@ -72,16 +73,23 @@ Syntax: ATR(len)
 Parameters: len - lookback period
 Notes: Calculation uses the original Welles Wilder formula...
 ```
+Multi-value example:
+```
+SomeFunc
+Parameters: x - first value
+  y - second value
+  z - third value
+```
 
 **BodyText for prose pages** — title followed by paragraphs joined with `\n`.
 
 ### 2. `DocChunker` — Simplified Mapper
 
-The `ChunkByFunctionEntry` path (multi-`<h2>` detection) is removed — it was a workaround for the old flat parser. All pages now flow through two paths:
+The `ChunkByFunctionEntry` path (multi-`<h2>` detection) is removed — it was a workaround for the old flat parser. The `function_entry` chunk type is retired; all reference docs now use `chunk_type = "reference"`. Existing `function_entry` rows are automatically removed by `DeleteBySourceTypeAsync("docs")` on re-ingestion. `DocChunker.Chunk()` now switches on `page.PageType` (pre-classified by `ChmParser`) rather than re-parsing `RawHtml`. All pages flow through two paths:
 
 **Reference pages → `chunk_type: "reference"`**
 - `description`: page title (enables exact-match lookup)
-- `category`: value of the `"Category"` label if present
+- `category`: first value of the `"Category"` label if present (multi-value Category is not expected but first-value is taken if it occurs)
 - `section`: breadcrumb section string
 - `content`: structured labeled `BodyText`
 
@@ -94,25 +102,29 @@ The `ChunkByFunctionEntry` path (multi-`<h2>` detection) is removed — it was a
 
 ### 3. `VectorStoreService` — New Exact-Match Method
 
-Add `SearchByDescriptionAsync(string name, string? sourceType)`:
+Add `SearchByDescriptionAsync(string name, string? chunkType = "reference", int topK = 1)`:
 
 ```sql
 SELECT ... FROM chunks
 WHERE LOWER(description) = LOWER(@name)
-  AND source_type = @source_type   -- if provided
+  AND chunk_type = @chunk_type   -- defaults to "reference"
 LIMIT @topk
 ```
+
+Defaults to `chunk_type = "reference"` and `topK = 1` since an exact function name lookup should return at most one page. The `chunkType` parameter can be set to `null` to search all types.
 
 ### 4. `GetFunctionReferenceTool` — Priority Search Cascade
 
 Replace the current 3-step lookup with a 4-step cascade, returning immediately when results are found:
 
-| Step | Method | Query |
+| Step | Method | Notes |
 |------|--------|-------|
-| 1 | `SearchByDescriptionAsync` | Exact `description = name` |
-| 2 | `KeywordSearchAsync` | `content LIKE 'name\n%'` filtered to `chunk_type = "reference"` |
-| 3 | `KeywordSearchAsync` | `content LIKE '%name%'` across all types |
-| 4 | `VectorSearchAsync` | Semantic embedding fallback |
+| 1 | `SearchByDescriptionAsync(name)` | Exact `LOWER(description) = LOWER(name)`, `chunk_type = "reference"` |
+| 2 | `KeywordSearchAsync(name, chunkType: "reference")` | `content LIKE '%name%'` filtered to reference chunks — catches cases where description is missing |
+| 3 | `KeywordSearchAsync(name, chunkType: null)` | `content LIKE '%name%'` across all chunk types |
+| 4 | `VectorSearchAsync(embedding, sourceType: "docs")` | Semantic embedding fallback |
+
+**Note on Step 2:** `KeywordSearchAsync` uses `LIKE '%name%'` (not a prefix match). The prefix behaviour described during design is not needed since Step 1 already handles exact matches; Step 2 just provides a fallback for reference chunks where `description` wasn't populated.
 
 ---
 
@@ -158,4 +170,4 @@ C:\RealTest\Help\*.htm
 - Reference pages store labeled content (Category, Syntax, Parameters, Notes visible in chunk content)
 - `section` field is populated from breadcrumb for all chunks (not empty/directory name)
 - NavIndex pages produce no chunks
-- All 583 Syntax Element Detail pages ingest as `chunk_type = "reference"` with `description` populated
+- At least 95% of pages whose breadcrumb contains "Syntax Element Details" ingest as `chunk_type = "reference"` with `description` populated (the remaining ~5% are expected NavIndex or malformed pages)
