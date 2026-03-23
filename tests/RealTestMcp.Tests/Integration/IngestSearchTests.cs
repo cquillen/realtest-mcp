@@ -45,13 +45,23 @@ public class IngestSearchTests : IAsyncLifetime
     // ── get_function_reference (keyword path) ─────────────────────
 
     [Fact]
-    public async Task GetFunctionReference_KeywordPath_FindsATR()
+    public async Task GetFunctionReference_DescriptionMatch_FindsATR()
     {
-        var results = await _store.KeywordSearchAsync("ATR", chunkType: "function_entry", topK: 3);
+        // Step 1 of cascade: exact description match
+        var results = await _store.SearchByDescriptionAsync("ATR");
 
-        // If no function_entry chunks exist (single-page CHM structure), fall back to page search
-        if (results.Count == 0)
-            results = await _store.KeywordSearchAsync("ATR", chunkType: null, topK: 3);
+        Assert.NotEmpty(results);
+        Assert.Contains(results, r => r.Description != null);
+        Assert.All(results, r => Assert.Equal("reference", r.ChunkType));
+        Assert.Contains(results, r =>
+            r.Description?.Equals("ATR", StringComparison.OrdinalIgnoreCase) == true);
+    }
+
+    [Fact]
+    public async Task GetFunctionReference_KeywordFallback_FindsATR()
+    {
+        // Step 2 of cascade: keyword search in reference chunks
+        var results = await _store.KeywordSearchAsync("ATR", chunkType: "reference", topK: 3);
 
         Assert.NotEmpty(results);
         Assert.Contains(results, r => r.Content.Contains("ATR"));
@@ -63,7 +73,7 @@ public class IngestSearchTests : IAsyncLifetime
     public async Task GetFunctionReference_SemanticFallback_FindsFunction()
     {
         // Search for something that won't match keyword but should match semantically
-        var keywordResults = await _store.KeywordSearchAsync("ZZZNOMATCH", chunkType: "function_entry", topK: 3);
+        var keywordResults = await _store.KeywordSearchAsync("ZZZNOMATCH", chunkType: "reference", topK: 3);
         Assert.Empty(keywordResults); // confirm keyword misses
 
         var queryEmbedding = await _embedder.EmbedAsync("highest value over lookback period");

@@ -12,10 +12,18 @@ public class GetFunctionReferenceTool(VectorStoreService store, EmbeddingService
     public async Task<string> GetFunctionReference(
         [Description("Function name to look up (e.g. 'ATR', 'Lowest', 'RSI')")] string functionName)
     {
-        // Step 1: keyword search against function_entry chunks
-        var results = await store.KeywordSearchAsync(functionName, chunkType: "function_entry", topK: 3);
+        // Step 1: exact description match on reference chunks
+        var results = await store.SearchByDescriptionAsync(functionName);
 
-        // Step 2: semantic fallback across all docs if keyword found nothing
+        // Step 2: keyword search within reference chunks
+        if (results.Count == 0)
+            results = await store.KeywordSearchAsync(functionName, chunkType: "reference", topK: 3);
+
+        // Step 3: keyword search across all chunk types
+        if (results.Count == 0)
+            results = await store.KeywordSearchAsync(functionName, chunkType: null, topK: 3);
+
+        // Step 4: semantic embedding fallback across all docs
         if (results.Count == 0)
         {
             var queryEmbedding = await embedder.EmbedAsync(functionName);
