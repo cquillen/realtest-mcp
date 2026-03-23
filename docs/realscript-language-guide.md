@@ -358,6 +358,8 @@ All support one-pass calculation in `Data:` with non-variable count unless noted
 | `Lowest` | `LLV` | `Lowest(expr, count)` | Lowest value over count bars |
 | `ROC` | `PctChg` | `ROC(expr, count)` | % rate of change: 100*(expr/expr[count]-1) |
 | `CountTrue` | — | `CountTrue(cond, count)` | Count of bars where condition is true |
+| `SinceTrue` | — | `SinceTrue(cond {, count})` | Bars since condition was last true; returns 0 if true now, -1 if never true |
+| `DateBars` | — | `DateBars(date)` | Bars since (or until) a specific calendar date |
 | `Slope` | — | `Slope(expr, count)` | Linear regression slope over count bars |
 | `Correl` | — | `Correl(expr1, expr2, count)` | Pearson correlation of two series |
 
@@ -525,7 +527,11 @@ Strategy: "ShortMR"
 
 7. **Case insensitivity:** RealScript is case-insensitive for built-in names (`rsi` = `RSI`), but user-defined Data names are conventionally camelCase or lowercase.
 
-8. **#SlowCalc is required for Log(C) in Slope:** Log of unadjusted prices cannot be buffered across splits. Always prefix `Slope(Log(C), n)` and `Correl(Log(C), ...)` with `#SlowCalc`.
+8. **SinceTrue vs CountTrue:** `SinceTrue(cond)` returns how many bars *ago* a condition was last true (0=now, 1=yesterday, -1=never). `CountTrue(cond, n)` returns *how many* times it was true in the last n bars. Different questions.
+
+9. **DateBars needs +1 as a length:** `DateBars(Date(2024,1,1))` returns the offset to that date. When passing this as a lookback *length* to another function (e.g. `ROC(C, DateBars(...))`), add 1 to make the range inclusive. When using as a bar *offset* (e.g. `C[-DateBars(...)]`), no +1 needed.
+
+10. **#SlowCalc is required for Log(C) in Slope:** Log of unadjusted prices cannot be buffered across splits. Always prefix `Slope(Log(C), n)` and `Correl(Log(C), ...)` with `#SlowCalc`.
 
 ---
 
