@@ -2,20 +2,17 @@
 <html>
 <head><title>ATR</title></head>
 <body>
-<h1>ATR</h1>
-<p><b>Average True Range.</b> Measures volatility as the average of true ranges over a given period.</p>
-<h2>Syntax</h2>
-<pre>ATR(periods)</pre>
-<h2>Parameters</h2>
-<p><b>periods</b>: Integer. Number of bars to average. Common values: 10, 14, 20.</p>
-<h2>Returns</h2>
-<p>Float. The average true range value for the current bar.</p>
-<h2>Example</h2>
-<pre>
-Strategy MyStrategy:
-  ExitStop: Entry - ATR(14) * 2
-</pre>
-<h2>Notes</h2>
-<p>ATR is commonly used for stop placement and position sizing. It adapts to changing market volatility.</p>
+<p class="ps1"><a class="hs1" href="rts.htm">Realtest Script Language</a> &gt; <a class="hs1" href="syntax.htm">Syntax Element Details</a></p>
+<p class="ps2">ATR</p>
+<p class="ps4">Category</p>
+<p class="ps6">Indicator Functions</p>
+<p class="ps4">Description</p>
+<p class="ps6">Wilder's Average True Range</p>
+<p class="ps4">Syntax</p>
+<p class="ps6">ATR(len)</p>
+<p class="ps4">Parameters</p>
+<p class="ps6">len - lookback period</p>
+<p class="ps4">Notes</p>
+<p class="ps6">Calculation uses the original Welles Wilder formula</p>
 </body>
 </html>

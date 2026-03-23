@@ -1,32 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head><title>Highest and Lowest Functions</title></head>
+<head><title>Script Sections</title></head>
 <body>
-<h1>Highest and Lowest</h1>
-<p>These functions return the highest or lowest value of a series over a lookback period.</p>
-
-<h2>Highest</h2>
-<h3>Syntax</h3>
-<pre>Highest(series, periods)</pre>
-<h3>Parameters</h3>
-<p><b>series</b>: The data series to evaluate (e.g. H for high prices).</p>
-<p><b>periods</b>: Integer lookback period.</p>
-<h3>Example</h3>
-<pre>
-// Donchian channel breakout
-EntrySetup: C > Highest(H, 20)[1]
-</pre>
-
-<h2>Lowest</h2>
-<h3>Syntax</h3>
-<pre>Lowest(series, periods)</pre>
-<h3>Parameters</h3>
-<p><b>series</b>: The data series to evaluate (e.g. L for low prices).</p>
-<p><b>periods</b>: Integer lookback period.</p>
-<h3>Example</h3>
-<pre>
-// Long entry at lowest low
-EntrySetup: C = Lowest(L, 10)
-</pre>
+<p class="ps1"><a class="hs1" href="rts.htm">Realtest Script Language</a></p>
+<p class="ps2">Script Sections</p>
+<p class="ps4">A RealScript strategy is composed of named sections that define entry and exit logic.</p>
+<p class="ps4">Each section is evaluated once per bar during the backtest.</p>
+<p class="ps8">EntrySetup: conditions that must be true before an entry is triggered</p>
+<p class="ps8">ExitStop: price level at which to exit the trade with a stop order</p>
 </body>
 </html>
