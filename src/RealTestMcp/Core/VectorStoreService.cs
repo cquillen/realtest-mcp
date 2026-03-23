@@ -177,10 +177,13 @@ public class VectorStoreService : IAsyncDisposable
     public async Task<List<SearchResult>> KeywordSearchAsync(
         string keyword,
         string? chunkType = null,
+        string? sourceType = null,
         int topK = 3)
     {
         var conn = await GetConnectionAsync();
-        var whereClause = chunkType is not null ? "AND chunk_type = @chunk_type" : "";
+        var whereClause = "";
+        if (chunkType  is not null) whereClause += " AND chunk_type   = @chunk_type";
+        if (sourceType is not null) whereClause += " AND source_type  = @source_type";
         var sql = $"""
             SELECT id, source_type, source_path, chunk_type, section, category, description, content, 0.0 AS distance
             FROM chunks
@@ -193,7 +196,8 @@ public class VectorStoreService : IAsyncDisposable
         cmd.CommandText = sql;
         cmd.Parameters.AddWithValue("@keyword", $"%{keyword}%");
         cmd.Parameters.AddWithValue("@topk", topK);
-        if (chunkType is not null) cmd.Parameters.AddWithValue("@chunk_type", chunkType);
+        if (chunkType  is not null) cmd.Parameters.AddWithValue("@chunk_type",  chunkType);
+        if (sourceType is not null) cmd.Parameters.AddWithValue("@source_type", sourceType);
 
         return await ReadSearchResultsAsync(cmd);
     }

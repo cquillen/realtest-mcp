@@ -16,6 +16,16 @@ public class SearchUserScriptsTool(VectorStoreService store, EmbeddingService em
         var queryEmbedding = await embedder.EmbedAsync(query);
         var results = await store.VectorSearchAsync(queryEmbedding, sourceType: "user_script", topK: topK);
 
+        // Keyword fallback: script code is semantically distant from NL queries in the embedding model
+        if (results.Count == 0)
+        {
+            foreach (var kw in query.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                results = await store.KeywordSearchAsync(kw, sourceType: "user_script", topK: topK);
+                if (results.Count > 0) break;
+            }
+        }
+
         if (results.Count == 0)
             return "No user scripts found. Add script paths to appsettings.json and run 'realtest-mcp ingest scripts'.";
 

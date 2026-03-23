@@ -18,6 +18,16 @@ public class SearchExamplesTool(VectorStoreService store, EmbeddingService embed
         var results = await store.VectorSearchAsync(queryEmbedding, sourceType: "example",
             categoryFilter: categoryFilter, topK: topK);
 
+        // Keyword fallback: script code is semantically distant from NL queries in the embedding model
+        if (results.Count == 0)
+        {
+            foreach (var kw in query.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                results = await store.KeywordSearchAsync(kw, sourceType: "example", topK: topK);
+                if (results.Count > 0) break;
+            }
+        }
+
         if (results.Count == 0)
             return "No example scripts found. Run 'realtest-mcp ingest scripts' if the database is empty.";
 
