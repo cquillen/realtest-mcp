@@ -30,6 +30,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>appsettings.json</Link>
     </Content>
+    <Content Include="..\..\docs\realscript-language-guide.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>realscript-language-guide.md</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
