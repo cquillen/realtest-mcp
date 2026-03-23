@@ -27,7 +27,7 @@ public static class ChmParser
             try
             {
                 var page = ParseFile(file);
-                if (page.PageType != PageType.NavIndex && !string.IsNullOrWhiteSpace(page.BodyText))
+                if (!string.IsNullOrWhiteSpace(page.BodyText))
                     pages.Add(page);
             }
             catch (Exception ex)
@@ -76,14 +76,36 @@ public static class ChmParser
         }
 
         // NavIndex: no ps6 AND ps4 text (after stripping links) < 20 chars
+        // Still extract link texts as BodyText so the page can be indexed as a category listing.
         if (IsNavIndex(ps4Nodes))
+        {
+            var linkText = ExtractNavIndexLinks(ps4Nodes);
             return new HtmlPage(filePath, title, section, PageType.NavIndex,
-                new Dictionary<string, string>(), string.Empty, rawHtml);
+                new Dictionary<string, string>(), linkText, rawHtml);
+        }
 
         // Prose: everything else
         var proseText = BuildProseBodyText(title, doc);
         return new HtmlPage(filePath, title, section, PageType.Prose,
             new Dictionary<string, string>(), proseText, rawHtml);
+    }
+
+    private static string ExtractNavIndexLinks(HtmlNodeCollection? ps4Nodes)
+    {
+        if (ps4Nodes is null) return string.Empty;
+        var items = new List<string>();
+        foreach (var node in ps4Nodes)
+        {
+            var anchors = node.SelectNodes(".//a");
+            if (anchors is null) continue;
+            foreach (var a in anchors)
+            {
+                var text = HtmlEntity.DeEntitize(a.InnerText).Trim();
+                if (!string.IsNullOrWhiteSpace(text))
+                    items.Add(text);
+            }
+        }
+        return string.Join("\n", items);
     }
 
     private static bool IsNavIndex(HtmlNodeCollection? ps4Nodes)

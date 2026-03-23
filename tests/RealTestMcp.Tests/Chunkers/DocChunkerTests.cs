@@ -103,9 +103,31 @@ public class DocChunkerTests
     // ── navindex page ─────────────────────────────────────────────────
 
     [Fact]
-    public void NavIndexPage_ProducesNoChunks()
+    public void NavIndexPage_WithLinks_ProducesOneIndexChunk()
     {
         var page = ChmParser.ParseFile(NavIndexPage);
+        var chunks = DocChunker.Chunk(page);
+
+        Assert.Single(chunks);
+        Assert.Equal("index", chunks[0].ChunkType);
+    }
+
+    [Fact]
+    public void NavIndexPage_WithLinks_ContentContainsLinkedNames()
+    {
+        var page = ChmParser.ParseFile(NavIndexPage);
+        var chunks = DocChunker.Chunk(page);
+
+        Assert.Contains("ATR", chunks[0].Content);
+        Assert.Contains("RSI", chunks[0].Content);
+        Assert.Contains("Highest", chunks[0].Content);
+    }
+
+    [Fact]
+    public void NavIndexPage_WithNoLinks_ProducesNoChunks()
+    {
+        var page = new HtmlPage("/fake/empty-nav.html", "Empty Nav", "",
+            PageType.NavIndex, new Dictionary<string, string>(), "", "");
         var chunks = DocChunker.Chunk(page);
 
         Assert.Empty(chunks);

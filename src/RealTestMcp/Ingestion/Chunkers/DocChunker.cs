@@ -12,7 +12,8 @@ public static class DocChunker
         {
             PageType.Reference => ReferenceChunks(page),
             PageType.Prose     => [ProseChunk(page)],
-            _                  => []   // NavIndex: skip
+            PageType.NavIndex  => string.IsNullOrWhiteSpace(page.BodyText) ? [] : [NavIndexChunk(page)],
+            _                  => []
         };
     }
 
@@ -48,6 +49,22 @@ public static class DocChunker
             Category: null,
             Description: page.Title,
             Content: page.BodyText,
+            ChunkIndex: 0,
+            CreatedAt: DateTime.UtcNow);
+    }
+
+    private static Chunk NavIndexChunk(HtmlPage page)
+    {
+        var id = VectorStoreService.ComputeChunkId(page.FilePath, 0);
+        return new Chunk(
+            Id: id,
+            SourceType: "docs",
+            SourcePath: page.FilePath,
+            ChunkType: "index",
+            Section: NullIfEmpty(page.Section),
+            Category: null,
+            Description: page.Title,
+            Content: page.Title + "\n\n" + page.BodyText,
             ChunkIndex: 0,
             CreatedAt: DateTime.UtcNow);
     }

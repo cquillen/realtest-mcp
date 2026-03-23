@@ -115,19 +115,21 @@ public class ChmParserTests
     }
 
     [Fact]
-    public void ParseFile_NavIndexPage_HasEmptyBodyText()
+    public void ParseFile_NavIndexPage_BodyTextContainsLinkNames()
     {
         var page = ChmParser.ParseFile(NavIndexPage);
-        Assert.True(string.IsNullOrEmpty(page.BodyText));
+        Assert.Contains("ATR", page.BodyText);
+        Assert.Contains("RSI", page.BodyText);
+        Assert.Contains("Highest", page.BodyText);
     }
 
     // ── ParseDirectory ──────────────────────────────────────────────
 
     [Fact]
-    public void ParseDirectory_ExcludesNavIndexPages()
+    public void ParseDirectory_IncludesNavIndexPagesWithLinks()
     {
         var pages = ChmParser.ParseDirectory(DataDir);
-        Assert.DoesNotContain(pages, p => p.PageType == PageType.NavIndex);
+        Assert.Contains(pages, p => p.PageType == PageType.NavIndex);
     }
 
     [Fact]
