@@ -88,10 +88,15 @@ Parameters: x - first value
 The `ChunkByFunctionEntry` path (multi-`<h2>` detection) is removed — it was a workaround for the old flat parser. The `function_entry` chunk type is retired; all reference docs now use `chunk_type = "reference"`. Existing `function_entry` rows are automatically removed by `DeleteBySourceTypeAsync("docs")` on re-ingestion. `DocChunker.Chunk()` now switches on `page.PageType` (pre-classified by `ChmParser`) rather than re-parsing `RawHtml`. All pages flow through two paths:
 
 **Reference pages → `chunk_type: "reference"`**
-- `description`: page title (enables exact-match lookup)
+
+Many RealTest help pages use `"X or Y"` alias titles (e.g. `"EMA or XAvg"`, `"Highest or HHV"`). A single such page produces **one chunk per alias**, all with identical content. This ensures `SearchByDescriptionAsync("EMA")` and `SearchByDescriptionAsync("XAvg")` both hit Step 1 exact match.
+
+Split rule: if `page.Title` contains `" or "`, split on `" or "` to get aliases. Each alias becomes a separate chunk with `description = alias` and `chunk_index = 0, 1, 2, ...`. Pages with a single-token title (e.g. `"ATR"`) produce one chunk as before.
+
+- `description`: one alias token from the title split (e.g. `"EMA"` or `"XAvg"`)
 - `category`: first value of the `"Category"` label if present (multi-value Category is not expected but first-value is taken if it occurs)
 - `section`: breadcrumb section string
-- `content`: structured labeled `BodyText`
+- `content`: structured labeled `BodyText` (identical across all alias chunks for the same page)
 
 **Prose pages → `chunk_type: "page"`**
 - `description`: page title
@@ -167,6 +172,8 @@ C:\RealTest\Help\*.htm
 ## Success Criteria
 
 - `get_function_reference("ATR")` returns the ATR function page as the top result
+- `get_function_reference("EMA")` returns the EMA page (title `"EMA or XAvg"`) as the top result via exact description match
+- `get_function_reference("XAvg")` returns the same EMA page via exact description match
 - Reference pages store labeled content (Category, Syntax, Parameters, Notes visible in chunk content)
 - `section` field is populated from breadcrumb for all chunks (not empty/directory name)
 - NavIndex pages produce no chunks
