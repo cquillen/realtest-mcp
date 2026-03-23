@@ -221,6 +221,7 @@ Combined:
 | `EntryTime: choice` | When the entry order fills | `ThisClose`, `Intraday`, `NextOpen` (default for market), `NextClose` |
 | `SetupScore: formula` | Rank setups when capacity is limited | Higher score = selected first |
 | `EntryScore: formula` | Rank entries specifically | Use only when more entries than capacity; use `SetupScore` for general ranking |
+| `SetupSkip: formula` | Skip a setup during selection | Evaluated during setup selection; if true, the slot is freed for another setup. Unlike `EntrySkip`, which is evaluated later during entry simulation. |
 | `Side: Long\|Short` | Force a single direction | Omit if strategy can go both ways |
 
 ### 4.2 Exit Elements
@@ -353,6 +354,13 @@ All support one-pass calculation in `Data:` with non-variable count unless noted
 | `ATR` | — | `ATR(len)` | Wilder's Average True Range |
 | `MACD` | — | `MACD(len1, len2)` | EMA(C,len1) − EMA(C,len2) |
 | `STOC` | — | `STOC(len, avg)` | Stochastic; equivalent to 100*Avg((C-Lowest(L,len))/(Highest(H,len)-Lowest(L,len)), avg) |
+| `ADX` | — | `ADX(len)` | Wilder's Average Directional Index (uses Wilder smoothing) |
+| `HVOL` | — | `HVOL(len {, ppy})` | Historical volatility; equivalent to StdDev(log(C/C[1]),len)*100*Sqr(ppy). ppy defaults to S.BPY (252 for daily). |
+| `BBBot` | — | `BBBot(len, mult)` | Bollinger band lower: MA(C,len) − mult*StdDev(C,len) |
+| `BBTop` | — | `BBTop(len, mult)` | Bollinger band upper: MA(C,len) + mult*StdDev(C,len) |
+| `BBBotF` | — | `BBBotF(expr, len, mult)` | Bollinger band lower for any series (not just Close) |
+| `BBTopF` | — | `BBTopF(expr, len, mult)` | Bollinger band upper for any series |
+| `BBPct` | — | `BBPct(len, mult)` | %B: position of Close within the bands (0=bottom, 1=top) |
 | `StdDev` | — | `StdDev(expr, count)` | Population standard deviation (same as Excel STDEV.P) |
 | `Highest` | `HHV` | `Highest(expr, count)` | Highest value over count bars |
 | `Lowest` | `LLV` | `Lowest(expr, count)` | Lowest value over count bars |
@@ -375,6 +383,7 @@ All support one-pass calculation in `Data:` with non-variable count unless noted
 | `Abs` | — | `Abs(value)` | Absolute value |
 | `Log` | — | `Log(value)` | Natural logarithm |
 | `Exp` | — | `Exp(value)` | e raised to the power |
+| `FunBar` | — | `FunBar` | Ordinal position (1-based) of the current bar within a multi-bar function's internal loop. Used as an X-axis for `Correl` regression: `Correl(Log(C), FunBar, n)` |
 | `Extern` | — | `Extern($SYM, expr)` | Evaluate expr for a different symbol (`$SYM`), strategy (`@Name`), or bar size (`~Weekly`) |
 
 ### 7.3 Cross-Sectional Functions
