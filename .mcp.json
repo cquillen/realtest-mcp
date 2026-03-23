@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "realtest": {
+      "command": "dotnet",
+      "args": ["run", "--project", "D:/Code/realtest-mcp/src/RealTestMcp"]
+    }
+  }
+}
