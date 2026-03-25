@@ -325,85 +325,44 @@ Library:
 
 ---
 
-## WORKFLOWS — How to Use the MCP Tools
+## WORKFLOWS
+
+Tool descriptions are provided by the MCP protocol — these workflows define *when and in
+what order* to use them.
 
 ### Writing a New Script
 
-1. **Call `get_primer`** (this document) ONCE at the start of each scripting session
-2. **Discover available elements** with `list_elements` for relevant categories
-   (e.g., "Strategy Elements", "Indicator Functions")
-3. **For each element you plan to use**, call `get_reference` and verify:
-   - Correct parameter names and order
-   - Return type
-   - Any gotchas noted in the docs
-4. **Search for similar examples** with `search_scripts(query, source="example")`
-   — use these as structural templates
-5. **For complex topics**, call `get_section` to get the full narrative
-   (e.g., "Scan and TestScan Sections", "Scaling In or Out of Positions")
-6. **Write the script** following the patterns found in the docs and examples
-7. **Validate syntax** by writing the script to a file and running `realtest -parse script.rts`
-8. **Before presenting output**, re-check every function call against retrieved signatures
+1. Call `get_primer` once per session
+2. `list_elements` for relevant categories, then `get_reference` for each element you'll use
+3. `search_scripts` for structural templates; `get_section` for complex topics
+4. Write the script, then validate: `realtest -parse script.rts` (exit code 0 = valid)
+5. Re-check every function call against retrieved signatures before presenting output
 
 ### Debugging an Existing Script
 
-1. **List all functions and elements** used in the provided script
-2. **For each function**, call `get_reference` and compare:
-   - Are parameters in the correct order?
-   - Are parameter names spelled correctly?
-   - Is the return type being used correctly?
-3. **Search for error messages** with `search_docs` if the user has provided one
-4. **Check section structure** with `get_section` if the issue might be structural
-5. **Flag every discrepancy** found — do not silently fix things
-6. **Present a diff** of what needs to change and why, citing the retrieved docs
-
-Common issues: wrong parameter order (e.g. `Highest(20, H)` instead of `Highest(H, 20)`),
-using deprecated syntax, incorrect section names (e.g. `Entry:` vs `EntrySetup:`),
-missing required fields for a section type.
+1. `get_reference` for every function/element in the script — check parameter order, spelling, types
+2. `search_docs` for any error messages; `get_section` if the issue is structural
+3. Flag every discrepancy — do not silently fix. Present a diff citing the docs.
 
 ### Designing a Strategy from a Trading Concept
 
-1. **Search for similar examples** with `search_scripts` using the trading concept as the query
-2. **Discover available elements** with `list_elements("Strategy Elements")` and other relevant categories
-3. **Look up each building block** with `get_reference` for exact syntax
-4. **Read relevant narrative** with `get_section` for complex topics
-   (e.g., "Capacity Constraints", "Dynamic Sizing", "Scaling In or Out")
-5. **Scaffold the structure first** — sections only, no logic yet:
-   ```
-   Settings: ...
-   Strategy <Name>:
-     EntrySetup:
-     EntryLimit:
-     ExitRule:
-     ExitStop:
-     Quantity:
-   ```
-6. **Fill in the logic** one section at a time, calling `get_reference` for each element
+1. `search_scripts` for similar examples, `list_elements` to discover building blocks
+2. Scaffold the structure first (sections only, no logic), then fill in one section at a time
+3. Call `get_reference` for each element as you go
 
-Build the structure before the details. A correct skeleton with wrong parameters is easier
-to debug than a syntactically wrong script with the right intent.
-
-### Validating a Script via Command Line
-
-RealTest supports command-line invocation for headless syntax checking and execution:
+### Command Line
 
 ```
-realtest -parse script.rts        # syntax check only — exit code 0 = valid
+realtest -parse script.rts        # syntax check only
 realtest -test script.rts         # run backtest
-realtest -import script.rts       # run import section
-realtest -scan script.rts         # run scan section
-realtest -orders script.rts       # generate brokerage orders
+realtest -import script.rts       # run import
+realtest -scan script.rts         # run scan
+realtest -orders script.rts       # generate orders
 realtest -optimize script.rts     # run optimization
 ```
 
-Multiple modes can be chained: `realtest -import -test script.rts` runs import then backtest.
-Multiple scripts can follow a mode: `realtest -orders a.rts b.rts c.rts`.
-
-Exit codes: 0 = success. Non-zero values indicate specific error types (license, file I/O,
-memory, script syntax, import, data load, or other). Errors are written to stderr and
-appended to `errorlog.txt` in the RealTest install folder.
-
-**After writing a script to a file**, run `realtest -parse script.rts` to validate syntax
-before presenting the result to the user.
+Modes can be chained (`-import -test script.rts`) and multiple scripts can follow a mode.
+Exit code 0 = success; errors go to stderr and `errorlog.txt` in the RealTest install folder.
 
 ---
 
