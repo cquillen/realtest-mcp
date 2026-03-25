@@ -62,7 +62,6 @@ If no data is indexed when tools are called, return a helpful error: "No documen
 
 ```toml
 [realtest]
-install_path = "C:\\RealTest"
 pdf_path = "C:\\RealTest\\RealTest User Guide.pdf"
 
 [scripts]
@@ -148,7 +147,7 @@ Commission is calculated and charged separately for entry and exit transactions.
   - `section_number`: "17.18.103"
   - `source: "pdf"`
 
-- **Alias handling:** Elements with titles like "EMA or XAvg" or "Highest or HHV" produce multiple ChromaDB entries — same content, different `element_name` values. Split on ` or ` in the title.
+- **Alias handling:** Elements with titles like "EMA or XAvg" or "Highest or HHV" produce multiple ChromaDB entries — same content, different `element_name` values. Split on ` or ` in the title. This pattern has been validated against the actual PDF TOC entries — the ` or ` convention is used consistently by the author for function/value aliases only, not as English prose in titles.
 
 #### 2. Category Summaries (section 17.17.*)
 
@@ -240,7 +239,7 @@ Commission is calculated and charged separately for entry and exit transactions.
 - `title` (string, required) — Section title or partial match
 
 **Implementation:**
-1. Metadata query matching on `section_title` (case-insensitive substring match) or `section_number` (exact prefix match, e.g., "17.15" matches all children)
+1. Metadata query matching on `section_title` (case-insensitive substring match) or `section_number` (dot-boundary prefix match — "17.15" matches "17.15", "17.15.1", "17.15.2.1" etc., but NOT "17.150" or "17.1". The match requires the prefix to end at a dot boundary or exact end of string.)
 2. If the matched section has children (leaf chunks sharing the same `parent_section`), return all children concatenated in `section_number` sort order
 3. Fallback: Semantic search filtered to `chunk_type: "narrative"`
 
@@ -349,6 +348,8 @@ The embedding function is configured on the collection using ChromaDB's `Sentenc
 ## Ingestion Strategy
 
 Ingestion is **wipe-and-rebuild**: each `ingest` run deletes all existing data in the collection and re-ingests from scratch. This ensures consistency — no stale chunks from previous ingestion runs with different parsing logic. At ~700 chunks with a local embedding model, full re-ingestion completes in a reasonable time.
+
+A **last ingest timestamp** is stored as a metadata-only document in the collection with `chunk_type: "ingest_meta"` and `ingest_time` metadata field (ISO 8601 string). The `status` command reads this document. This document is excluded from all search queries via chunk_type filters.
 
 ## Error Handling
 
