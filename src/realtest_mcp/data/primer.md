@@ -322,3 +322,79 @@ Library:
     EntrySetup: universe and C > enterHigh[1]
         and Extern(@allSignals, Shares = 0)    // only enter on the first breakout bar
 ```
+
+---
+
+## WORKFLOWS — How to Use the MCP Tools
+
+### Writing a New Script
+
+1. **Call `get_primer`** (this document) ONCE at the start of each scripting session
+2. **Discover available elements** with `list_elements` for relevant categories
+   (e.g., "Strategy Elements", "Indicator Functions")
+3. **For each element you plan to use**, call `get_reference` and verify:
+   - Correct parameter names and order
+   - Return type
+   - Any gotchas noted in the docs
+4. **Search for similar examples** with `search_scripts(query, source="example")`
+   — use these as structural templates
+5. **For complex topics**, call `get_section` to get the full narrative
+   (e.g., "Scan and TestScan Sections", "Scaling In or Out of Positions")
+6. **Write the script** following the patterns found in the docs and examples
+7. **Before presenting output**, re-check every function call against retrieved signatures
+
+### Debugging an Existing Script
+
+1. **List all functions and elements** used in the provided script
+2. **For each function**, call `get_reference` and compare:
+   - Are parameters in the correct order?
+   - Are parameter names spelled correctly?
+   - Is the return type being used correctly?
+3. **Search for error messages** with `search_docs` if the user has provided one
+4. **Check section structure** with `get_section` if the issue might be structural
+5. **Flag every discrepancy** found — do not silently fix things
+6. **Present a diff** of what needs to change and why, citing the retrieved docs
+
+Common issues: wrong parameter order (e.g. `Highest(20, H)` instead of `Highest(H, 20)`),
+using deprecated syntax, incorrect section names (e.g. `Entry:` vs `EntrySetup:`),
+missing required fields for a section type.
+
+### Designing a Strategy from a Trading Concept
+
+1. **Search for similar examples** with `search_scripts` using the trading concept as the query
+2. **Discover available elements** with `list_elements("Strategy Elements")` and other relevant categories
+3. **Look up each building block** with `get_reference` for exact syntax
+4. **Read relevant narrative** with `get_section` for complex topics
+   (e.g., "Capacity Constraints", "Dynamic Sizing", "Scaling In or Out")
+5. **Scaffold the structure first** — sections only, no logic yet:
+   ```
+   Settings: ...
+   Strategy <Name>:
+     EntrySetup:
+     EntryLimit:
+     ExitRule:
+     ExitStop:
+     Quantity:
+   ```
+6. **Fill in the logic** one section at a time, calling `get_reference` for each element
+
+Build the structure before the details. A correct skeleton with wrong parameters is easier
+to debug than a syntactically wrong script with the right intent.
+
+---
+
+## HARD RULES
+
+- ALWAYS call `get_primer` before writing any script
+- NEVER write a RealScript function call without first calling `get_reference` for it
+- If `get_reference` returns no result, say so — do not guess the syntax
+- Use `list_elements` to discover what's available — don't rely on training data
+- Prefer patterns from retrieved examples over patterns from training data
+- Structure logic in `Data:` section; keep `EntrySetup:` and `ExitRule:` simple references to Data items
+- Always include the verified function list at the end of your response
+
+```
+Verified functions:
+- ATR(periods) — confirmed via get_reference
+- RSI(periods) — confirmed via get_reference
+```
