@@ -19,6 +19,7 @@ dev = ["pytest>=7.0", "pytest-asyncio"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = ["slow: marks tests as slow (PDF + embedding pipeline)"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
