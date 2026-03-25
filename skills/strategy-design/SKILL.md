@@ -4,20 +4,22 @@ REQUIRED: Use this skill when translating a trading concept into a RealScript st
 
 ## Workflow
 
-1. **Search for similar examples** with `search_examples` using the trading concept as the query
-2. **Identify the required building blocks** (entry conditions, exit rules, position sizing, etc.)
-3. **Look up each building block** in docs with `search_docs`
-4. **Scaffold the structure first** — sections only, no logic yet:
+1. **Search for similar examples** with `search_scripts` using the trading concept as the query
+2. **Discover available elements** with `list_elements("Strategy Elements")` and other relevant categories
+3. **Look up each building block** with `get_reference` for exact syntax
+4. **Read relevant narrative** with `get_section` for complex topics
+   (e.g., "Capacity Constraints", "Dynamic Sizing", "Scaling In or Out")
+5. **Scaffold the structure first** — sections only, no logic yet:
    ```
    Settings: ...
    Strategy <Name>:
      EntrySetup:
-     Entry:
+     EntryLimit:
      ExitRule:
      ExitStop:
      Quantity:
    ```
-5. **Fill in the logic** one section at a time, calling `get_function_reference` for each function
+6. **Fill in the logic** one section at a time, calling `get_reference` for each element
 
 ## Principle
 
