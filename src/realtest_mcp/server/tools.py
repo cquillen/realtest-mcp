@@ -1,6 +1,10 @@
 """MCP tool definitions for RealTest MCP."""
 
+from pathlib import Path
+
 from realtest_mcp.store.vector_store import VectorStore
+
+_PRIMER_PATH = Path(__file__).parent.parent / "data" / "primer.md"
 
 _store: VectorStore | None = None
 
@@ -22,15 +26,9 @@ def register_tools(mcp, store: VectorStore) -> None:
     def get_primer() -> str:
         """Load the RealScript mental model — script structure, evaluation semantics, formula syntax, and key concepts. Call this once at the start of any scripting session."""
         _check_populated()
-        chunks = _store.get_primer_chunks()
-        if not chunks:
-            return "No primer content found."
-        sections = []
-        for chunk in chunks:
-            title = chunk["metadata"].get("section_title", "Untitled")
-            content = chunk["document"]
-            sections.append(f"## {title}\n\n{content}")
-        return "\n\n---\n\n".join(sections)
+        if _PRIMER_PATH.exists():
+            return _PRIMER_PATH.read_text(encoding="utf-8")
+        return "Primer file not found."
 
     # Path tokens that map to a narrative section rather than an element
     _PATH_TOKENS = {"scriptpath", "desktop", "documents", "appdata",
