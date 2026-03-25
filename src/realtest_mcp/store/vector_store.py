@@ -27,21 +27,48 @@ class VectorStore:
     def add_documents(self, ids: list[str], documents: list[str], metadatas: list[dict]) -> None:
         self._collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
-    # Maps user queries to canonical element names for generic patterns
-    _ALIASES: dict[str, str] = {}
-
     @classmethod
     def _resolve_alias(cls, name_lower: str) -> str | None:
         """Resolve known patterns to their canonical element name."""
         import re
         # InXXX pattern — e.g. InSPX, InNDX, InDJI → inxxx
-        if re.match(r"^in[a-z]{2,}$", name_lower) and name_lower != "inxxx" and name_lower != "inlist":
+        if re.match(r"^in[a-z]{2,}$", name_lower) and name_lower not in ("inxxx", "inlist", "intraday", "include", "import"):
             return "inxxx"
         # nan constant → isnan (which documents the nan constant)
         if name_lower == "nan":
             return "isnan"
-        # Path tokens → narrative lookup (handled in tools layer instead)
-        return cls._ALIASES.get(name_lower)
+        return None
+
+    def _find_by_choice_value(self, name_lower: str) -> list[dict]:
+        """Find elements whose Choices or Notes field lists the given value."""
+        import re
+        results = self._collection.get(
+            where={"chunk_type": "element_detail"},
+            include=["documents", "metadatas"],
+        )
+        matches = []
+        for doc, meta, doc_id in zip(
+            results.get("documents", []),
+            results.get("metadatas", []),
+            results.get("ids", []),
+        ):
+            found = False
+            # Check formal Choices field: "Value - description" at line start
+            if "**Choices:**" in doc:
+                choices_text = doc[doc.index("**Choices:**"):]
+                for line in choices_text.split("\n"):
+                    stripped = line.strip().lower()
+                    if stripped.startswith(name_lower + " -") or stripped == name_lower:
+                        found = True
+                        break
+            # Check Notes for "Valid values are X, Y" or "Choices are X or Y" patterns
+            if not found:
+                pattern = rf"(?:valid values|choices) (?:are|include)\s+[^.]*\b{re.escape(name_lower)}\b"
+                if re.search(pattern, doc, re.IGNORECASE):
+                    found = True
+            if found:
+                matches.append({"id": doc_id, "document": doc, "metadata": meta})
+        return matches
 
     def get_by_element_name(self, name: str) -> list[dict]:
         name_lower = name.lower()
@@ -68,11 +95,12 @@ class VectorStore:
                 items.append({"id": doc_id, "document": doc, "metadata": meta})
         if items:
             return items
-        # Resolve known aliases/patterns
+        # Resolve known aliases/patterns (InXXX, nan)
         canonical = self._resolve_alias(name_lower)
         if canonical:
             return self.get_by_element_name(canonical)
-        return []
+        # Search Choices fields for enum values (e.g. "Norgate" → DataSource)
+        return self._find_by_choice_value(name_lower)
 
     def search(self, query: str, top_k: int = 5, category: str | None = None, chunk_type: str | None = None) -> list[dict]:
         where = self._build_where(category=category, chunk_type=chunk_type)

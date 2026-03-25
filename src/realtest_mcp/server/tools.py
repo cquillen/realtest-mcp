@@ -33,15 +33,49 @@ def register_tools(mcp, store: VectorStore) -> None:
         return "\n\n---\n\n".join(sections)
 
     # Path tokens that map to a narrative section rather than an element
-    _PATH_TOKENS = {"?scriptpath?", "?desktop?", "?documents?", "?appdata?"}
+    _PATH_TOKENS = {"scriptpath", "desktop", "documents", "appdata",
+                    "realtest", "data", "output", "scripts", "scriptname",
+                    "testname", "date", "time", "orderdate", "ocfolder"}
+
+    # Operators and syntax tokens that map to narrative sections
+    _OPERATOR_TOKENS = {
+        "and", "or", "not", "mod",
+        "+", "-", "*", "/", "%", "^",
+        "=", "==", "<>", "!=", ">", "<", ">=", "<=",
+        "bitand", "bitor", "bitxor", "bitnot",
+    }
+    _SYNTAX_SECTIONS = {
+        "[]": "Bar Offsets",
+        "bar offset": "Bar Offsets",
+        "bar offsets": "Bar Offsets",
+        "$": "Symbol References",
+        "$$": "Symbol References",
+        "@": "Symbol References",
+        "//": "Formula Syntax",
+        "/*": "Formula Syntax",
+        "comment": "Formula Syntax",
+        "comments": "Formula Syntax",
+    }
 
     @mcp.tool()
     def get_reference(name: str) -> str:
         """Get the exact reference documentation for a RealScript element. Call this before using any element in generated code."""
         _check_populated()
+        name_stripped = name.lower().strip("?").strip()
         # Path tokens → redirect to File Path Syntax section
-        if name.lower().strip("?") in {t.strip("?") for t in _PATH_TOKENS}:
+        if name_stripped in _PATH_TOKENS:
             results = _store.get_section("File Path Syntax")
+            if results:
+                return results[0]["document"]
+        # Operators → redirect to Operators section
+        if name_stripped in _OPERATOR_TOKENS:
+            results = _store.get_section("Operators")
+            if results:
+                return results[0]["document"]
+        # Other syntax tokens → redirect to specific sections
+        if name_stripped in _SYNTAX_SECTIONS:
+            section_title = _SYNTAX_SECTIONS[name_stripped]
+            results = _store.get_section(section_title)
             if results:
                 return results[0]["document"]
         # Step 1: exact match (includes disambiguation and alias resolution)
