@@ -175,15 +175,7 @@ Commission is calculated and charged separately for entry and exit transactions.
 
 #### 3. Narrative Sections
 
-- **Source sections included:**
-  - 11 — Using an Imported Trade List (trade list workflow)
-  - 15 — Trading Your System (order generation, OrderClerk)
-  - 16 — Backtest Engine Details (fill logic, compounding, scaling, futures, multi-currency)
-  - 17.1-17.16 — Script language structure, syntax, formula evaluation, section definitions
-- **Source sections excluded:**
-  - 1-7 — Setup, UI, tutorials (not relevant to script generation)
-  - 8-10 — Operational (import/run mechanics)
-  - 12-14 — Command line, multiple instances, analyzing results
+- **Source sections included:** All sections (1-17). The cost of including operational/UI sections is negligible (~50-80 extra chunks) and enables the MCP to answer questions beyond script generation — importing data, command line usage, analyzing results, program options, etc.
 - **Granularity:** Every TOC entry gets its own chunk (both parents and leaves). Parent entries contain their introductory content (text before the first child). Parent section title stored in metadata so `get_section` can reassemble a parent's intro chunk plus all its children.
 - **Metadata:**
   - `chunk_type: "narrative"`
