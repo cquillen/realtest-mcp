@@ -27,6 +27,22 @@ class VectorStore:
     def add_documents(self, ids: list[str], documents: list[str], metadatas: list[dict]) -> None:
         self._collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
+    # Maps user queries to canonical element names for generic patterns
+    _ALIASES: dict[str, str] = {}
+
+    @classmethod
+    def _resolve_alias(cls, name_lower: str) -> str | None:
+        """Resolve known patterns to their canonical element name."""
+        import re
+        # InXXX pattern — e.g. InSPX, InNDX, InDJI → inxxx
+        if re.match(r"^in[a-z]{2,}$", name_lower) and name_lower != "inxxx" and name_lower != "inlist":
+            return "inxxx"
+        # nan constant → isnan (which documents the nan constant)
+        if name_lower == "nan":
+            return "isnan"
+        # Path tokens → narrative lookup (handled in tools layer instead)
+        return cls._ALIASES.get(name_lower)
+
     def get_by_element_name(self, name: str) -> list[dict]:
         name_lower = name.lower()
         # Try exact match first
@@ -50,7 +66,13 @@ class VectorStore:
             stored_name = meta.get("element_name", "")
             if stored_name.startswith(name_lower + " (") or stored_name.startswith(name_lower + "\n"):
                 items.append({"id": doc_id, "document": doc, "metadata": meta})
-        return items
+        if items:
+            return items
+        # Resolve known aliases/patterns
+        canonical = self._resolve_alias(name_lower)
+        if canonical:
+            return self.get_by_element_name(canonical)
+        return []
 
     def search(self, query: str, top_k: int = 5, category: str | None = None, chunk_type: str | None = None) -> list[dict]:
         where = self._build_where(category=category, chunk_type=chunk_type)

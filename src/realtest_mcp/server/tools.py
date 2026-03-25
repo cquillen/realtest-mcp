@@ -32,11 +32,19 @@ def register_tools(mcp, store: VectorStore) -> None:
             sections.append(f"## {title}\n\n{content}")
         return "\n\n---\n\n".join(sections)
 
+    # Path tokens that map to a narrative section rather than an element
+    _PATH_TOKENS = {"?scriptpath?", "?desktop?", "?documents?", "?appdata?"}
+
     @mcp.tool()
     def get_reference(name: str) -> str:
         """Get the exact reference documentation for a RealScript element. Call this before using any element in generated code."""
         _check_populated()
-        # Step 1: exact match
+        # Path tokens → redirect to File Path Syntax section
+        if name.lower().strip("?") in {t.strip("?") for t in _PATH_TOKENS}:
+            results = _store.get_section("File Path Syntax")
+            if results:
+                return results[0]["document"]
+        # Step 1: exact match (includes disambiguation and alias resolution)
         results = _store.get_by_element_name(name)
         if results:
             parts = []
