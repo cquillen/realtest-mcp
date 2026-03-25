@@ -27,7 +27,7 @@ def test_parse_wraps_in_code_block(tmp_path):
     script = tmp_path / "test.rts"
     script.write_text("Data:\n  sma: MA(C, 20)\n")
     result = ScriptParser.parse_file(str(script))
-    assert result.content.startswith("```rts\n")
+    assert result.content.startswith("# test\n```rts\n")
     assert result.content.endswith("\n```")
 
 

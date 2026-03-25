@@ -20,7 +20,8 @@ class ScriptParser:
             raw = p.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             raw = p.read_text(encoding="latin-1")
-        content = f"```rts\n{raw.rstrip()}\n```"
+        stem = p.stem.replace("_", " ")
+        content = f"# {stem}\n```rts\n{raw.rstrip()}\n```"
         return ScriptChunk(filename=p.name, file_path=str(p), content=content)
 
     @staticmethod

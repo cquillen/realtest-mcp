@@ -177,7 +177,7 @@ def register_tools(mcp, store: VectorStore) -> None:
             return f"No scripts found for '{query}'."
         sections = []
         for r in results:
-            name = r["metadata"].get("file_name", "unknown")
+            name = r["metadata"].get("filename", "unknown")
             content = r["document"]
             if len(content) > 3000:
                 content = content[:3000] + "\n\n... (truncated, full script is longer)"
