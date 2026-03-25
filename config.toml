@@ -1,0 +1,9 @@
+[realtest]
+pdf_path = "C:\\RealTest\\RealTest User Guide.pdf"
+
+[scripts]
+examples = "C:\\RealTest\\Scripts\\Examples"
+user_scripts = []
+
+[database]
+path = "%LOCALAPPDATA%\\RealTestMcp\\chromadb"

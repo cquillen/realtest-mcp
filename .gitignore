@@ -7,3 +7,9 @@
 # .NET build output
 bin/
 obj/
+
+# Python
+__pycache__/
+*.egg-info/
+*.pyc
+.pytest_cache/
