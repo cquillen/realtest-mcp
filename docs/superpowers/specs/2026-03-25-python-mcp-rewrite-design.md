@@ -99,8 +99,8 @@ The PDF is parsed as a **continuous text stream**, not page-by-page. Multiple el
 3. Splitting uses regex matches on TOC title strings found in the text stream:
    - Pattern: `^N.N.N. Title` anchored to line start (avoids false matches in "See also" references)
    - Each TOC title match marks the **start** of a new chunk, ending the previous chunk
-   - Only **leaf-level** TOC entries produce chunks (parent entries that have children are not chunked separately — their content is captured by their children)
-   - The text between two consecutive leaf-level title matches becomes the chunk content
+   - **Every TOC entry produces a chunk**, including parent entries that have children. Parent entries often contain introductory content before the first child (e.g., `17.16. Formula Syntax` explains where formulas are allowed before `17.16.1. Operators` begins). The text between a parent title and its first child title becomes the parent's chunk content.
+   - The text between two consecutive title matches (at any level) becomes the chunk content
 4. Each split produces one content block with known boundaries
 
 ### Content Formatting
@@ -184,7 +184,7 @@ Commission is calculated and charged separately for entry and exit transactions.
   - 1-7 — Setup, UI, tutorials (not relevant to script generation)
   - 8-10 — Operational (import/run mechanics)
   - 12-14 — Command line, multiple instances, analyzing results
-- **Granularity:** Leaf-level chunks. Each deepest TOC entry is its own chunk. Parent section title stored in metadata so `get_section` can reassemble children.
+- **Granularity:** Every TOC entry gets its own chunk (both parents and leaves). Parent entries contain their introductory content (text before the first child). Parent section title stored in metadata so `get_section` can reassemble a parent's intro chunk plus all its children.
 - **Metadata:**
   - `chunk_type: "narrative"`
   - `section_title`: e.g., "Scan and TestScan Sections"
