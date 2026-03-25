@@ -28,11 +28,29 @@ class VectorStore:
         self._collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
     def get_by_element_name(self, name: str) -> list[dict]:
+        name_lower = name.lower()
+        # Try exact match first
         results = self._collection.get(
-            where={"element_name": name.lower()},
+            where={"element_name": name_lower},
             include=["documents", "metadatas"],
         )
-        return self._format_get_results(results)
+        items = self._format_get_results(results)
+        if items:
+            return items
+        # Fall back to matching disambiguated names like "combined (section)"
+        all_elements = self._collection.get(
+            where={"chunk_type": "element_detail"},
+            include=["documents", "metadatas"],
+        )
+        for doc, meta, doc_id in zip(
+            all_elements.get("documents", []),
+            all_elements.get("metadatas", []),
+            all_elements.get("ids", []),
+        ):
+            stored_name = meta.get("element_name", "")
+            if stored_name.startswith(name_lower + " (") or stored_name.startswith(name_lower + "\n"):
+                items.append({"id": doc_id, "document": doc, "metadata": meta})
+        return items
 
     def search(self, query: str, top_k: int = 5, category: str | None = None, chunk_type: str | None = None) -> list[dict]:
         where = self._build_where(category=category, chunk_type=chunk_type)
