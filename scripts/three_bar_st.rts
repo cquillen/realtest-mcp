@@ -1,0 +1,33 @@
+Notes:
+	3-bar bullish reversal pattern with SuperTrend trailing stop
+	Uses DynamicSizing mode with ATR-based risk sizing
+	Pattern: (1) bearish bar, (2) lower low closing in upper half, (3) close above prior high
+	Entry when pattern fires during SuperTrend uptrend
+	Exit when price drops below SuperTrend
+
+Parameters:
+	stLen:	10
+	stMult:	3
+	atrLen:	20
+	riskPct:	0.01
+	seqBars:	5
+
+Data:
+	// 3-bar bullish reversal sequence
+	bar1:	C < O
+	bar2:	L < L[1] and C > (H + L) / 2
+	bar3:	C > H[1]
+	pattern:	Sequence(seqBars, bar1, bar2, bar3)
+	// SuperTrend as trend filter and trailing stop
+	st:	SuperTrend(stLen, stMult)
+	stUp:	C > st
+	// ATR for risk-based sizing
+	atrVal:	ATR(atrLen)
+	// risk distance = price to SuperTrend, floored at 1 ATR
+	riskDist:	Max(C - st, atrVal)
+
+Strategy: ThreeBarST
+	DynamicSizing:	True
+	QtyType:	Shares
+	Quantity:	Select(Shares = 0 and pattern and stUp, S.Alloc * riskPct / riskDist, not stUp, 0, nan)
+	MaxExposure:	100

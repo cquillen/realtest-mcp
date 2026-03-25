@@ -341,7 +341,8 @@ Library:
 5. **For complex topics**, call `get_section` to get the full narrative
    (e.g., "Scan and TestScan Sections", "Scaling In or Out of Positions")
 6. **Write the script** following the patterns found in the docs and examples
-7. **Before presenting output**, re-check every function call against retrieved signatures
+7. **Validate syntax** by writing the script to a file and running `realtest -parse script.rts`
+8. **Before presenting output**, re-check every function call against retrieved signatures
 
 ### Debugging an Existing Script
 
@@ -380,6 +381,29 @@ missing required fields for a section type.
 
 Build the structure before the details. A correct skeleton with wrong parameters is easier
 to debug than a syntactically wrong script with the right intent.
+
+### Validating a Script via Command Line
+
+RealTest supports command-line invocation for headless syntax checking and execution:
+
+```
+realtest -parse script.rts        # syntax check only — exit code 0 = valid
+realtest -test script.rts         # run backtest
+realtest -import script.rts       # run import section
+realtest -scan script.rts         # run scan section
+realtest -orders script.rts       # generate brokerage orders
+realtest -optimize script.rts     # run optimization
+```
+
+Multiple modes can be chained: `realtest -import -test script.rts` runs import then backtest.
+Multiple scripts can follow a mode: `realtest -orders a.rts b.rts c.rts`.
+
+Exit codes: 0 = success. Non-zero values indicate specific error types (license, file I/O,
+memory, script syntax, import, data load, or other). Errors are written to stderr and
+appended to `errorlog.txt` in the RealTest install folder.
+
+**After writing a script to a file**, run `realtest -parse script.rts` to validate syntax
+before presenting the result to the user.
 
 ---
 
