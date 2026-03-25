@@ -37,6 +37,9 @@ class VectorStore:
         # nan constant → isnan (which documents the nan constant)
         if name_lower == "nan":
             return "isnan"
+        # Opt* sub-items → OptimizeSettings (e.g. OptimizeMode, OptScoreCol)
+        if re.match(r"^opt[a-z]", name_lower) and name_lower != "optimizesettings":
+            return "optimizesettings"
         return None
 
     def _find_by_choice_value(self, name_lower: str) -> list[dict]:

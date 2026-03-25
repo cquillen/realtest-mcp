@@ -55,6 +55,11 @@ def register_tools(mcp, store: VectorStore) -> None:
         "/*": "Formula Syntax",
         "comment": "Formula Syntax",
         "comments": "Formula Syntax",
+        # Scan sub-keywords
+        "filter": "Scan and TestScan Sections",
+        "filterlong": "Scan and TestScan Sections",
+        "filtershort": "Scan and TestScan Sections",
+        "sort": "Scan and TestScan Sections",
     }
 
     @mcp.tool()
