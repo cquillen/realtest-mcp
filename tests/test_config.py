@@ -21,6 +21,7 @@ def test_env_var_override(tmp_config, monkeypatch):
 
 def test_expand_percent_vars(tmp_config, monkeypatch):
     monkeypatch.setenv("REALTEST_MCP_CONFIG", str(tmp_config))
+    monkeypatch.setenv("TEMP", "/tmp/fake")
     monkeypatch.setenv("REALTEST_MCP_DB_PATH", "%TEMP%/test_db")
     config = Config.load()
     assert "%TEMP%" not in config.db_path
