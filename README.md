@@ -1,41 +1,62 @@
 # RealTest MCP Server
 
-Semantic search over RealTest documentation and example scripts for Claude Code.
-Fixes RealScript hallucinations by providing authoritative function references at query time.
+An MCP server that gives LLM agents structured access to RealTest backtesting
+documentation and example scripts. Fixes RealScript hallucinations by providing
+authoritative function references, searchable docs, and verified example scripts
+at query time.
 
 ## Requirements
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- RealTest installed (for CHM docs and example scripts)
+- Python 3.11+
+- RealTest installed (for the User Guide PDF and example scripts)
 
 ## Setup
 
-**1. Clone and build**
+**1. Clone and install**
+
 ```bash
 git clone <repo-url>
 cd realtest-mcp
-dotnet build
+pip install -e .
 ```
 
-**2. Extract RealTest docs** (one-time, after each RealTest upgrade)
-```bash
-hh.exe -decompile C:\RealTest\Help "C:\RealTest\RealTest User Guide.chm"
+**2. Configure paths**
+
+Edit `config.toml` to match your RealTest installation:
+
+```toml
+[realtest]
+pdf_path = "C:\\RealTest\\RealTest User Guide.pdf"
+
+[scripts]
+examples = "C:\\RealTest\\Scripts\\Examples"
+user_scripts = []
+
+[database]
+path = "%LOCALAPPDATA%\\RealTestMcp\\chromadb"
 ```
+
+All paths support `%VAR%` environment variable expansion. Individual fields can
+also be overridden via environment variables: `REALTEST_MCP_PDF_PATH`,
+`REALTEST_MCP_EXAMPLES`, `REALTEST_MCP_DB_PATH`.
 
 **3. Ingest docs and scripts**
+
 ```bash
-dotnet run --project src/RealTestMcp -- ingest docs
-dotnet run --project src/RealTestMcp -- ingest scripts
-dotnet run --project src/RealTestMcp -- status
+python -m realtest_mcp ingest
+python -m realtest_mcp status
 ```
 
-**4. Configure Claude Code** — add to your `claude_desktop_config.json`:
+**4. Configure your MCP client**
+
+Add to `.mcp.json` in your project (or pass via `--mcp-config`):
+
 ```json
 {
   "mcpServers": {
     "realtest": {
-      "command": "dotnet",
-      "args": ["run", "--project", "C:/path/to/realtest-mcp/src/RealTestMcp"]
+      "command": "python",
+      "args": ["-m", "realtest_mcp", "serve"]
     }
   }
 }
@@ -43,32 +64,34 @@ dotnet run --project src/RealTestMcp -- status
 
 **5. (Optional) Add your own scripts**
 
-Edit `appsettings.json` and add paths to `ScriptPaths`, then re-run `ingest scripts`.
-
-## Configuration
-
-Edit `appsettings.json` (next to the built binary) to override defaults:
-
-| Key | Default | Description |
-|---|---|---|
-| `Database.Path` | `%LOCALAPPDATA%\RealTestMcp\realtest.db` | SQLite database location |
-| `RealTest.DocsPath` | `C:\RealTest\Help` | Extracted CHM HTML directory |
-| `RealTest.ScriptPaths` | `["C:\RealTest\Scripts\Examples"]` | Script directories to index |
+Add directories to `user_scripts` in `config.toml`, then re-run `ingest`.
 
 ## Commands
 
 | Command | Description |
 |---|---|
-| *(no args)* | Start MCP server (managed by Claude Code) |
-| `ingest docs` | Ingest/refresh CHM documentation |
-| `ingest scripts` | Ingest/refresh all configured script paths |
-| `status` | Show database statistics |
+| `serve` | Start MCP server (StdIO transport, managed by client) |
+| `ingest` | Extract PDF docs, index scripts into ChromaDB |
+| `status` | Show database statistics (chunk counts, timestamps) |
 
 ## MCP Tools
 
+Six tools are exposed to MCP clients:
+
 | Tool | Description |
 |---|---|
+| `get_primer` | Load the RealScript mental model (call once per session) |
+| `get_reference` | Look up exact element docs with alias resolution |
+| `get_section` | Fetch narrative documentation sections by title |
+| `list_elements` | Browse element categories and their contents |
 | `search_docs` | Semantic search over documentation |
-| `get_function_reference` | Look up a RealScript function signature |
-| `search_examples` | Find example scripts by concept |
-| `search_user_scripts` | Search your own script files |
+| `search_scripts` | Find example scripts by concept or technique |
+
+See [API Reference](docs/api-reference.md) for full parameter details and
+usage examples.
+
+## Documentation
+
+- [Architecture Overview](docs/architecture.md) -- system design, components, data flow
+- [API Reference](docs/api-reference.md) -- tool parameters, resolution logic, workflows
+- [Roadmap](docs/roadmap.md) -- proposed enhancements
