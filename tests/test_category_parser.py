@@ -1,6 +1,5 @@
 """Tests for parsing 17.17 category summary lists."""
 
-import pytest
 from realtest_mcp.ingestion.category_parser import CategoryParser
 
 

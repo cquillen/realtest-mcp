@@ -1,6 +1,7 @@
 """Tests for ChromaDB vector store wrapper."""
 
 import pytest
+
 from realtest_mcp.store.vector_store import VectorStore
 
 
@@ -13,7 +14,14 @@ def test_add_and_get_by_metadata(store):
     store.add_documents(
         ids=["elem_1"],
         documents=["## ATR\n**Category:** Indicator Functions"],
-        metadatas=[{"chunk_type": "element_detail", "element_name": "atr", "element_name_display": "ATR", "category": "Indicator Functions"}],
+        metadatas=[
+            {
+                "chunk_type": "element_detail",
+                "element_name": "atr",
+                "element_name_display": "ATR",
+                "category": "Indicator Functions",
+            }
+        ],
     )
     results = store.get_by_element_name("atr")
     assert len(results) == 1
@@ -84,9 +92,27 @@ def test_list_elements_by_category(store):
         ids=["e1", "e2", "e3"],
         documents=["doc1", "doc2", "doc3"],
         metadatas=[
-            {"chunk_type": "element_detail", "element_name": "atr", "element_name_display": "ATR", "category": "Indicator Functions", "summary": "average true range"},
-            {"chunk_type": "element_detail", "element_name": "rsi", "element_name_display": "RSI", "category": "Indicator Functions", "summary": "relative strength index"},
-            {"chunk_type": "element_detail", "element_name": "commission", "element_name_display": "Commission", "category": "Strategy Elements", "summary": "trade commission"},
+            {
+                "chunk_type": "element_detail",
+                "element_name": "atr",
+                "element_name_display": "ATR",
+                "category": "Indicator Functions",
+                "summary": "average true range",
+            },
+            {
+                "chunk_type": "element_detail",
+                "element_name": "rsi",
+                "element_name_display": "RSI",
+                "category": "Indicator Functions",
+                "summary": "relative strength index",
+            },
+            {
+                "chunk_type": "element_detail",
+                "element_name": "commission",
+                "element_name_display": "Commission",
+                "category": "Strategy Elements",
+                "summary": "trade commission",
+            },
         ],
     )
     elements = store.list_elements("Indicator Functions")
@@ -127,7 +153,9 @@ def test_get_primer_chunks(store):
 
 
 def test_wipe_collection(store):
-    store.add_documents(ids=["e1"], documents=["test"], metadatas=[{"chunk_type": "element_detail"}])
+    store.add_documents(
+        ids=["e1"], documents=["test"], metadatas=[{"chunk_type": "element_detail"}]
+    )
     assert store.count() > 0
     store.wipe()
     assert store.count() == 0
@@ -135,5 +163,7 @@ def test_wipe_collection(store):
 
 def test_is_populated(store):
     assert not store.is_populated()
-    store.add_documents(ids=["e1"], documents=["test"], metadatas=[{"chunk_type": "element_detail"}])
+    store.add_documents(
+        ids=["e1"], documents=["test"], metadatas=[{"chunk_type": "element_detail"}]
+    )
     assert store.is_populated()

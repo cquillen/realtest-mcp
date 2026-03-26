@@ -12,9 +12,7 @@ _store: VectorStore | None = None
 def _check_populated() -> None:
     """Raise RuntimeError if the store is empty."""
     if _store is None or not _store.is_populated():
-        raise RuntimeError(
-            "Vector store is empty. Run the ingest pipeline first."
-        )
+        raise RuntimeError("Vector store is empty. Run the ingest pipeline first.")
 
 
 def register_tools(mcp, store: VectorStore) -> None:
@@ -31,16 +29,47 @@ def register_tools(mcp, store: VectorStore) -> None:
         return "Primer file not found."
 
     # Path tokens that map to a narrative section rather than an element
-    _PATH_TOKENS = {"scriptpath", "desktop", "documents", "appdata",
-                    "realtest", "data", "output", "scripts", "scriptname",
-                    "testname", "date", "time", "orderdate", "ocfolder"}
+    _PATH_TOKENS = {
+        "scriptpath",
+        "desktop",
+        "documents",
+        "appdata",
+        "realtest",
+        "data",
+        "output",
+        "scripts",
+        "scriptname",
+        "testname",
+        "date",
+        "time",
+        "orderdate",
+        "ocfolder",
+    }
 
     # Operators and syntax tokens that map to narrative sections
     _OPERATOR_TOKENS = {
-        "and", "or", "not", "mod",
-        "+", "-", "*", "/", "%", "^",
-        "=", "==", "<>", "!=", ">", "<", ">=", "<=",
-        "bitand", "bitor", "bitxor", "bitnot",
+        "and",
+        "or",
+        "not",
+        "mod",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        "^",
+        "=",
+        "==",
+        "<>",
+        "!=",
+        ">",
+        "<",
+        ">=",
+        "<=",
+        "bitand",
+        "bitor",
+        "bitxor",
+        "bitnot",
     }
     _SYNTAX_SECTIONS = {
         "[]": "Bar Offsets",
@@ -153,7 +182,9 @@ def register_tools(mcp, store: VectorStore) -> None:
             return f"No documentation found for '{query}'."
         sections = []
         for r in results:
-            name = r["metadata"].get("element_name_display", r["metadata"].get("section_title", "Untitled"))
+            name = r["metadata"].get(
+                "element_name_display", r["metadata"].get("section_title", "Untitled")
+            )
             cat = r["metadata"].get("category", "")
             content = r["document"]
             sections.append(f"### {name} ({cat})\n\n{content}")

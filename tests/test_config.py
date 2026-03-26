@@ -1,7 +1,7 @@
 """Tests for config loading."""
 
-import os
 import pytest
+
 from realtest_mcp.config import Config
 
 

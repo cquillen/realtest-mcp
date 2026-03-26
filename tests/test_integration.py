@@ -4,9 +4,9 @@ These tests are slow (several minutes) because they process the full PDF
 and embed ~700 chunks.  Mark: @pytest.mark.slow
 """
 
-import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 from realtest_mcp.config import Config
 from realtest_mcp.ingestion.ingest import run_ingest

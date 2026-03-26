@@ -17,9 +17,11 @@ class Config:
     @staticmethod
     def _expand_vars(value: str) -> str:
         """Expand %VAR% style environment variables in a string."""
+
         def replacer(match):
             var_name = match.group(1)
             return os.environ.get(var_name, match.group(0))
+
         return re.sub(r"%([^%]+)%", replacer, value)
 
     @classmethod

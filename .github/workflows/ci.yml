@@ -7,30 +7,39 @@ on:
     branches: [main, master]
 
 jobs:
-  build-and-test:
-    runs-on: windows-latest
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check src/ tests/
+
+      - name: Ruff format check
+        run: ruff format --check src/ tests/
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-python@v5
         with:
-          dotnet-version: '10.0.x'
+          python-version: ${{ matrix.python-version }}
 
-      - name: Verify sqlite-vec native extension present
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "native/windows-x64/vec0.dll")) {
-            Write-Error "native/windows-x64/vec0.dll is missing. Download from sqlite-vec GitHub releases."
-            exit 1
-          }
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
 
-      - name: Restore
-        run: dotnet restore RealTestMcp.sln
-
-      - name: Build
-        run: dotnet build RealTestMcp.sln --no-restore --configuration Release
-
-      - name: Test
-        run: dotnet test RealTestMcp.sln --no-build --configuration Release --verbosity normal
+      - name: Run tests
+        run: pytest --ignore=tests/test_integration.py -v

@@ -1,12 +1,20 @@
 """Parse element detail fields from raw PDF chunk text."""
 
 import re
-from dataclasses import dataclass, field as dataclass_field
-
+from dataclasses import dataclass
 
 FIELD_LABELS = [
-    "Category", "Description", "Input", "Syntax", "Parameters",
-    "Choices", "Default", "Notes", "Example", "Return Value", "See also",
+    "Category",
+    "Description",
+    "Input",
+    "Syntax",
+    "Parameters",
+    "Choices",
+    "Default",
+    "Notes",
+    "Example",
+    "Return Value",
+    "See also",
 ]
 
 
@@ -39,7 +47,6 @@ class ParsedElement:
 
 
 class ElementParser:
-
     @staticmethod
     def parse(raw_text: str, title: str) -> ParsedElement:
         section_number = ElementParser._extract_section_number(title)
@@ -68,7 +75,7 @@ class ElementParser:
     @staticmethod
     def _extract_fields(raw_text: str) -> dict[str, str]:
         fields = {}
-        label_pattern = "|".join(re.escape(l) for l in FIELD_LABELS)
+        label_pattern = "|".join(re.escape(lbl) for lbl in FIELD_LABELS)
         pattern = re.compile(
             rf"^({label_pattern})\n(.*?)(?=^(?:{label_pattern})\n|\Z)",
             re.MULTILINE | re.DOTALL,

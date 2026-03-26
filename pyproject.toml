@@ -14,12 +14,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-asyncio"]
+dev = ["pytest>=7.0", "pytest-asyncio", "ruff"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = ["slow: marks tests as slow (PDF + embedding pipeline)"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 99
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "E501",   # line length — enforced by formatter instead
+    "B905",   # zip() strict= — ChromaDB returns parallel lists by contract
+    "SIM105", # contextlib.suppress — try/except/pass is clearer for single calls
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]  # allow assert True/False in tests
 
 [tool.setuptools.packages.find]
 where = ["src"]

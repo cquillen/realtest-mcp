@@ -1,6 +1,5 @@
 """Tests for PDF text to markdown conversion."""
 
-import pytest
 from realtest_mcp.ingestion.markdown_formatter import MarkdownFormatter
 
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class RawChunk:
     """A raw text chunk extracted from the PDF text stream."""
+
     title: str
     section_number: str
     level: int
@@ -45,23 +46,23 @@ class Chunker:
 
         # Extract text between consecutive positions
         chunks = []
-        for idx, (pos, entry_idx, level, title, section_number) in enumerate(positions):
-            title_end = self.text.index("\n", pos) + 1 if "\n" in self.text[pos:] else len(self.text)
-            if idx + 1 < len(positions):
-                text_end = positions[idx + 1][0]
-            else:
-                text_end = len(self.text)
+        for idx, (pos, _entry_idx, level, title, section_number) in enumerate(positions):
+            has_newline = "\n" in self.text[pos:]
+            title_end = self.text.index("\n", pos) + 1 if has_newline else len(self.text)
+            text_end = positions[idx + 1][0] if idx + 1 < len(positions) else len(self.text)
 
             chunk_text = self.text[title_end:text_end].strip()
             parent_title = parent_map.get(title)
 
-            chunks.append(RawChunk(
-                title=title,
-                section_number=section_number,
-                level=level,
-                text=chunk_text,
-                parent_title=parent_title,
-            ))
+            chunks.append(
+                RawChunk(
+                    title=title,
+                    section_number=section_number,
+                    level=level,
+                    text=chunk_text,
+                    parent_title=parent_title,
+                )
+            )
 
         return chunks
 

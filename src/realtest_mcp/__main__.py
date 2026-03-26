@@ -1,7 +1,6 @@
 """CLI entry point: python -m realtest_mcp [serve|ingest|status]"""
 
 import argparse
-import sys
 
 
 def main():
@@ -18,13 +17,16 @@ def main():
 
     if args.command == "serve":
         from realtest_mcp.server.mcp_server import run_server
+
         run_server()
     elif args.command == "ingest":
         from realtest_mcp.ingestion.ingest import run_ingest
+
         run_ingest()
     elif args.command == "status":
-        from realtest_mcp.store.vector_store import VectorStore
         from realtest_mcp.config import Config
+        from realtest_mcp.store.vector_store import VectorStore
+
         config = Config.load()
         store = VectorStore(config.db_path)
         store.print_status()

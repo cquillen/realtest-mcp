@@ -12,14 +12,14 @@ class MarkdownFormatter:
         r"Benchmark|Combined|Template|Parameters|Include|Notes|"
         r"EntrySetup|ExitRule|ExitStop|ExitLimit|Quantity|SetupScore|"
         r"EntryLimit|EntryStop|Side|Commission|Slippage)\s*[:>]",
-        re.MULTILINE
+        re.MULTILINE,
     )
 
     # Formula-like syntax: function calls, operators with identifiers
     _FORMULA_PATTERN = re.compile(
         r"(?:MA|EMA|RSI|ATR|HVOL|BBTop|BBBot|Highest|Lowest|CountTrue|"
         r"SinceTrue|Correl|Extern|Select|IF|Min|Max|Sum|Round|Abs)\s*\(",
-        re.IGNORECASE
+        re.IGNORECASE,
     )
 
     # Standalone page numbers (a line that is just digits, typically 1-3 digits)
@@ -67,10 +67,9 @@ class MarkdownFormatter:
         in_code = False
         code_buffer = []
 
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             is_code_line = bool(
-                cls._SECTION_KEYWORDS.match(line)
-                or cls._FORMULA_PATTERN.search(line)
+                cls._SECTION_KEYWORDS.match(line) or cls._FORMULA_PATTERN.search(line)
             )
 
             if is_code_line and not in_code:

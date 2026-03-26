@@ -1,6 +1,5 @@
 """Tests for .rts script file reading."""
 
-import pytest
 from realtest_mcp.ingestion.script_parser import ScriptParser
 
 

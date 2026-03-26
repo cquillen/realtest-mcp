@@ -1,6 +1,7 @@
 """Tests for TOC-based text stream splitting."""
 
 import pytest
+
 from realtest_mcp.ingestion.chunker import Chunker
 
 
@@ -69,7 +70,7 @@ def test_chunk_content_boundaries(sample_toc, sample_text):
 def test_parent_chunk_has_intro_content(sample_toc, sample_text):
     chunker = Chunker(sample_toc, sample_text)
     chunks = chunker.split()
-    sections_chunk = [c for c in chunks if c.title == "17.15. Script Sections"][0]
+    sections_chunk = next(c for c in chunks if c.title == "17.15. Script Sections")
     assert "outer sections represent different categories" in sections_chunk.text
     assert "Import section specifies" not in sections_chunk.text
 
@@ -86,7 +87,7 @@ def test_chunk_metadata(sample_toc, sample_text):
 def test_chunk_parent_section(sample_toc, sample_text):
     chunker = Chunker(sample_toc, sample_text)
     chunks = chunker.split()
-    import_chunk = [c for c in chunks if "Import Section" in c.title][0]
+    import_chunk = next(c for c in chunks if "Import Section" in c.title)
     assert import_chunk.parent_title == "17.15. Script Sections"
 
 

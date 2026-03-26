@@ -1,7 +1,6 @@
 """Shared test fixtures."""
 
 import pytest
-from pathlib import Path
 
 
 @pytest.fixture
@@ -16,7 +15,7 @@ examples = "C:\\\\RealTest\\\\Scripts\\\\Examples"
 user_scripts = []
 
 [database]
-path = "{(tmp_path / 'chromadb').as_posix()}"
+path = "{(tmp_path / "chromadb").as_posix()}"
 """
     config_file = tmp_path / "config.toml"
     config_file.write_text(config_content)

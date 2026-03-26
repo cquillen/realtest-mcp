@@ -12,7 +12,6 @@ class ScriptChunk:
 
 
 class ScriptParser:
-
     @staticmethod
     def parse_file(path: str) -> ScriptChunk:
         p = Path(path)

@@ -1,6 +1,5 @@
 """Tests for parsing element detail fields from raw chunk text."""
 
-import pytest
 from realtest_mcp.ingestion.element_parser import ElementParser
 
 

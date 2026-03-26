@@ -11,8 +11,11 @@ def populated_store(tmp_path):
     store = VectorStore(str(tmp_path / "chromadb"))
 
     ids = [
-        "elem_rsi", "elem_sma", "elem_cross",
-        "narr_primer_1", "narr_primer_2",
+        "elem_rsi",
+        "elem_sma",
+        "elem_cross",
+        "narr_primer_1",
+        "narr_primer_2",
         "script_example_1",
     ]
     documents = [

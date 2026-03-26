@@ -1,6 +1,7 @@
 """Tests for PDF text extraction and TOC parsing."""
 
 import pytest
+
 from realtest_mcp.ingestion.pdf_parser import PdfParser
 
 PDF_PATH = r"C:\RealTest\RealTest User Guide.pdf"

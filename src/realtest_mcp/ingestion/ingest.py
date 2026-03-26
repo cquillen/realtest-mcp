@@ -6,17 +6,26 @@ from pathlib import Path
 
 from ..config import Config
 from ..store.vector_store import VectorStore
-from .pdf_parser import PdfParser
-from .chunker import Chunker
-from .markdown_formatter import MarkdownFormatter
-from .element_parser import ElementParser
 from .category_parser import CategoryParser
+from .chunker import Chunker
+from .element_parser import ElementParser
+from .markdown_formatter import MarkdownFormatter
+from .pdf_parser import PdfParser
 from .script_parser import ScriptParser
 
 PRIMER_SECTIONS = {
-    "17": 1, "17.1": 2, "17.15": 3, "17.15.2": 4, "17.15.6": 5,
-    "17.15.7": 6, "17.16": 7, "17.16.1": 8, "17.16.2": 9,
-    "16.11": 10, "16.6": 11, "16.1": 12,
+    "17": 1,
+    "17.1": 2,
+    "17.15": 3,
+    "17.15.2": 4,
+    "17.15.6": 5,
+    "17.15.7": 6,
+    "17.16": 7,
+    "17.16.1": 8,
+    "17.16.2": 9,
+    "16.11": 10,
+    "16.6": 11,
+    "16.1": 12,
 }
 
 
@@ -65,7 +74,7 @@ def run_ingest(config: Config | None = None) -> dict:
                 parsed = CategoryParser.parse(chunk.text)
                 category_summaries.update(parsed)
             except Exception as exc:
-                warnings.warn(f"Category parse error for {chunk.title}: {exc}")
+                warnings.warn(f"Category parse error for {chunk.title}: {exc}", stacklevel=2)
                 warn_count += 1
     print(f"[ingest] Category summaries: {len(category_summaries)} element names mapped")
 
@@ -88,17 +97,19 @@ def run_ingest(config: Config | None = None) -> dict:
                 doc_id = _chunk_id("pdf", alias_lower)
                 elem_ids.append(doc_id)
                 elem_docs.append(md)
-                elem_metas.append({
-                    "chunk_type": "element_detail",
-                    "source": "pdf",
-                    "element_name": alias_lower,
-                    "element_name_display": alias_display,
-                    "section_number": sn,
-                    "category": parsed.category,
-                    "summary": summary,
-                })
+                elem_metas.append(
+                    {
+                        "chunk_type": "element_detail",
+                        "source": "pdf",
+                        "element_name": alias_lower,
+                        "element_name_display": alias_display,
+                        "section_number": sn,
+                        "category": parsed.category,
+                        "summary": summary,
+                    }
+                )
         except Exception as exc:
-            warnings.warn(f"Element parse error for {chunk.title}: {exc}")
+            warnings.warn(f"Element parse error for {chunk.title}: {exc}", stacklevel=2)
             warn_count += 1
 
     if elem_ids:
@@ -131,17 +142,19 @@ def run_ingest(config: Config | None = None) -> dict:
             doc_id = _chunk_id("pdf", chunk.title)
             narr_ids.append(doc_id)
             narr_docs.append(md)
-            narr_metas.append({
-                "chunk_type": "narrative",
-                "source": "pdf",
-                "section_title": section_title,
-                "section_number": sn,
-                "parent_section": parent_section,
-                "is_primer": "true" if is_primer else "false",
-                "primer_order": str(primer_order) if is_primer else "0",
-            })
+            narr_metas.append(
+                {
+                    "chunk_type": "narrative",
+                    "source": "pdf",
+                    "section_title": section_title,
+                    "section_number": sn,
+                    "parent_section": parent_section,
+                    "is_primer": "true" if is_primer else "false",
+                    "primer_order": str(primer_order) if is_primer else "0",
+                }
+            )
         except Exception as exc:
-            warnings.warn(f"Narrative error for {chunk.title}: {exc}")
+            warnings.warn(f"Narrative error for {chunk.title}: {exc}", stacklevel=2)
             warn_count += 1
 
     if narr_ids:
@@ -160,7 +173,7 @@ def run_ingest(config: Config | None = None) -> dict:
 
     for dir_path, source_type in script_dirs:
         if not Path(dir_path).is_dir():
-            warnings.warn(f"Script directory not found, skipping: {dir_path}")
+            warnings.warn(f"Script directory not found, skipping: {dir_path}", stacklevel=2)
             warn_count += 1
             continue
         try:
@@ -170,18 +183,20 @@ def run_ingest(config: Config | None = None) -> dict:
                     doc_id = _chunk_id("script", sc.filename)
                     script_ids.append(doc_id)
                     script_docs.append(sc.content)
-                    script_metas.append({
-                        "chunk_type": "script",
-                        "source": "script",
-                        "source_type": source_type,
-                        "filename": sc.filename,
-                        "file_path": sc.file_path,
-                    })
+                    script_metas.append(
+                        {
+                            "chunk_type": "script",
+                            "source": "script",
+                            "source_type": source_type,
+                            "filename": sc.filename,
+                            "file_path": sc.file_path,
+                        }
+                    )
                 except Exception as exc:
-                    warnings.warn(f"Script error for {sc.filename}: {exc}")
+                    warnings.warn(f"Script error for {sc.filename}: {exc}", stacklevel=2)
                     warn_count += 1
         except Exception as exc:
-            warnings.warn(f"Script directory error for {dir_path}: {exc}")
+            warnings.warn(f"Script directory error for {dir_path}: {exc}", stacklevel=2)
             warn_count += 1
 
     if script_ids:

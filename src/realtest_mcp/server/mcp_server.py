@@ -3,8 +3,8 @@
 from mcp.server.fastmcp import FastMCP
 
 from realtest_mcp.config import Config
-from realtest_mcp.store.vector_store import VectorStore
 from realtest_mcp.server.tools import register_tools
+from realtest_mcp.store.vector_store import VectorStore
 
 _mcp = FastMCP("RealTest MCP")
 

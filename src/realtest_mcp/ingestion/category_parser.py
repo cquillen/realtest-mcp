@@ -4,7 +4,6 @@ import re
 
 
 class CategoryParser:
-
     @staticmethod
     def parse(raw_text: str) -> dict[str, str]:
         """Parse bullet list of 'Name - description' into {lowered_name: description}."""
